@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/EngineSimulation/vcpkg_installed
+/EngineSimulation/test.png
+/EngineSimulation/constants.h
