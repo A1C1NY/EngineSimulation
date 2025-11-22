@@ -3,9 +3,9 @@
 #include <string>
 #include <atomic>
 #include "engine.h"
-#include "ui.h" // For AlertManager
+#include "ui.h" // 用于绘制警报
 
-// Log Handling Functions
+// 输出log和csv的函数声明
 void handleLogging(Engine& engine, std::ofstream& data_log_file, std::ofstream& alert_log_file, bool& is_logging, AlertManager& alert_manager);
 void logData(Engine& engine, std::ofstream& data_log_file，, double start_time);
 

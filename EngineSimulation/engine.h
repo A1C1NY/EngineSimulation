@@ -21,6 +21,97 @@ enum class EngineState { OFF, STARTING, STABLE, STOPPING };
 enum class EngineSubState { NONE, START, SHUTDOWN, STABLE_RUN};
 
 // 单个引擎的结构体
-struct Engine {
+struct SingleEngine {
+	double n1_true = 0.0;  // 真实的N1转速
+	double egt_true = AMBIENT_TEMP;  // 真实的EGT温度
+	double n1_sensor[2] = { 0.0, 0.0 }; // N1传感器读数x2
+	double egt_sensor[2] = { AMBIENT_TEMP, AMBIENT_TEMP }; // EGT传感器读数x2
+	bool n1_sensor_anomalous[2] = { false, false }; // N1传感器异常标志x2
+	bool egt_sensor_anomalous[2] = { false, false }; // EGT传感器异常标志x2
+	bool n1_sensor_overridden[2] = { false, false }; // N1传感器覆盖标志x2(fail时是否需要屏蔽)
+	bool egt_sensor_overridden[2] = { false, false }; // EGT传感器覆盖标志x2(fail时是否需要屏蔽)
+	bool n1_sensor_forced_anomalous[2] = { false, false }; // N1传感器强制异常标志x2（输出保持）
+	bool egt_sensor_forced_anomalous[2] = { false, false }; // EGT传感器强制异常标志x2（输出保持）
+	double n1_sensor_override_value[2] = { 0.0, 0.0 }; // N1传感器覆盖值x2
+	double egt_sensor_override_value[2] = { 0.0, 0.0 }; // EGT传感器覆盖值x2
+    double n1Base = 0.0;
+    double egtBase = AMBIENT_TEMP;
+};
 
+class Engine {
+public:
+    Engine();
+
+	// 启动与停止
+    void start();
+    void stop();
+
+    // 固定步长推进（取代原来的依赖墙钟的 update）
+    void advanceFixed(double dt);
+
+    // 仅供 UI / 日志读取
+    double getSimTime() const { return simElapsed; }
+
+    // 传感器与显示值
+    double getN1Left() const;
+    double getN1Right() const;
+    double getEgtLeft() const;
+    double getEgtRight() const;
+    double getN1LeftPercentage() const;
+    double getN1RightPercentage() const;
+    double getFuelFlow() const;
+    double getFuelReserve() const;
+    EngineState getState() const;
+    EngineSubState getSubState() const;
+
+    double getSensorValue(int engine_idx, int sensor_type, int sensor_idx) const;
+
+    // 控制接口（保留）
+    void setForcedN1Sensor(int e, int s, double v);
+    void resetN1SensorOverride(int e, int s);
+    void setForcedEGTSensor(int e, int s, double v);
+    void resetEGTSensorOverride(int e, int s);
+    void setN1SensorAnomalous(int e, int s, bool anomalous);
+    void setEGTSensorAnomalous(int e, int s, bool anomalous);
+    void setForcedFuelReserve(double value);
+    void resetFuelReserveOverride();
+    void setFuelReserveSensorInvalid(bool invalid);
+    bool isFuelReserveSensorInvalid() const;
+    void setFuelFlowSensorInvalid(bool invalid);
+    bool isFuelFlowSensorInvalid() const;
+    void setForcedFuelFlow(double value);
+    void resetForcedFuelFlow();
+
+    bool isN1SensorAnomalous(int e, int s) const;
+    bool isEGTSensorAnomalous(int e, int s) const;
+    bool isN1SystemFault(int e) const;
+    bool isEGTSystemFault(int e) const;
+
+    void increaseThrust();
+    void decreaseThrust();
+
+private:
+    void resetParameters();
+    void updateStarting(double t);
+    void updateStable();
+    void updateStopping(double t);
+    void updateSensorsFor(SingleEngine& eng);
+    double getDisplayedValue(const SingleEngine& eng, bool isN1) const;
+
+    EngineState state = EngineState::OFF;
+    EngineSubState subState = EngineSubState::NONE;
+
+    double simElapsed = 0.0;
+    double startPhaseElapsed = 0.0;
+    double stopPhaseElapsed = 0.0;
+
+    double fuelFlow = 0.0;
+    double fuelReserve = 0.0;
+    double fuelFlowBase = 0.0;
+    bool fuelReserveSensorInvalid = false;
+    bool fuelFlowSensorInvalid = false;
+    bool fuelFlowOverridden = false;
+
+    SingleEngine leftEngine;
+    SingleEngine rightEngine;
 };
