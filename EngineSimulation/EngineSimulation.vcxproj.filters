@@ -50,8 +50,5 @@
     <ClInclude Include="event.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="constants.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
