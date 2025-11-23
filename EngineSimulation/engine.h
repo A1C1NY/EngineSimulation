@@ -18,7 +18,7 @@ const double FUEL_FLOW_MAX = 50.0; // 最大燃油流量
 const double N1_STABLE_THRESHOLD = 0.95 * N1_MAX_RATED; // 稳定运行阈值
 
 enum class EngineState { OFF, STARTING, STABLE, STOPPING }; 
-enum class EngineSubState { NONE, START, SHUTDOWN, STABLE_RUN};
+enum class EngineSubState { NONE, LINEAR_START, LOG_START, SHUTDOWN, STABLE_RUN};
 
 // 单个引擎的结构体
 struct SingleEngine {
@@ -34,8 +34,8 @@ struct SingleEngine {
 	bool egt_sensor_forced_anomalous[2] = { false, false }; // EGT传感器强制异常标志x2（输出保持）
 	double n1_sensor_override_value[2] = { 0.0, 0.0 }; // N1传感器覆盖值x2
 	double egt_sensor_override_value[2] = { 0.0, 0.0 }; // EGT传感器覆盖值x2
-    double n1Base = 0.0;
-    double egtBase = AMBIENT_TEMP;
+    double n1_base = 0.0;
+    double egt_base = AMBIENT_TEMP;
 };
 
 class Engine {
@@ -47,10 +47,14 @@ public:
     void stop();
 
     // 固定步长推进（取代原来的依赖墙钟的 update）
-    void advanceFixed(double dt);
+    void advance(double dt);
+
+	// 推力控制
+    void increaseThrust();
+    void decreaseThrust();
 
     // 仅供 UI / 日志读取
-    double getSimTime() const { return simElapsed; }
+    double getSimTime() const;
 
     // 传感器与显示值
     double getN1Left() const;
@@ -71,8 +75,6 @@ public:
     void resetN1SensorOverride(int e, int s);
     void setForcedEGTSensor(int e, int s, double v);
     void resetEGTSensorOverride(int e, int s);
-    void setN1SensorAnomalous(int e, int s, bool anomalous);
-    void setEGTSensorAnomalous(int e, int s, bool anomalous);
     void setForcedFuelReserve(double value);
     void resetFuelReserveOverride();
     void setFuelReserveSensorInvalid(bool invalid);
@@ -87,16 +89,12 @@ public:
     bool isN1SystemFault(int e) const;
     bool isEGTSystemFault(int e) const;
 
-    void increaseThrust();
-    void decreaseThrust();
+
 
 private:
 	// 状态更新函数
     void resetParameters();
-    void updateStarting(double t);
-    void updateStable();
-    void updateStopping(double t);
-    void updateSensorsFor(SingleEngine& eng);
+    void updateSensor(SingleEngine& eng);
     double getDisplayedValue(const SingleEngine& eng, bool isN1) const;
 
 	// 引擎状态初始化
