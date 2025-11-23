@@ -91,6 +91,7 @@ public:
     void decreaseThrust();
 
 private:
+	// 状态更新函数
     void resetParameters();
     void updateStarting(double t);
     void updateStable();
@@ -98,13 +99,16 @@ private:
     void updateSensorsFor(SingleEngine& eng);
     double getDisplayedValue(const SingleEngine& eng, bool isN1) const;
 
+	// 引擎状态初始化
     EngineState state = EngineState::OFF;
     EngineSubState subState = EngineSubState::NONE;
 
+	// 时间跟踪
     double simElapsed = 0.0;
     double startPhaseElapsed = 0.0;
     double stopPhaseElapsed = 0.0;
 
+	// 燃油参数
     double fuelFlow = 0.0;
     double fuelReserve = 0.0;
     double fuelFlowBase = 0.0;
@@ -112,6 +116,7 @@ private:
     bool fuelFlowSensorInvalid = false;
     bool fuelFlowOverridden = false;
 
+	// 2台引擎
     SingleEngine leftEngine;
     SingleEngine rightEngine;
 };
