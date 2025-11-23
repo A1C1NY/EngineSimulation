@@ -107,7 +107,7 @@ void Engine::advance(double dt) {
 
 	simElapsed += dt;
 
-	// 更新引擎状态机
+	// 更新引擎状态
 	switch (state) {
 		case EngineState::STARTING:
 			// 按照题目要求的分段函数进行启动
