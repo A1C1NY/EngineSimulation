@@ -43,20 +43,20 @@ void Engine::start() {
 static void releaseCoolingOverride(SingleEngine& engine) {
 	for (int s = 0; s < 2; ++s) {
 		// N1 覆盖释放条件：已覆盖 + 非强制异常 + 覆盖值在有效范围 (0 <= v <= 1.25 * 40000)
-		if (engine.n1_sensor_overridden[s]) {
-			double value = engine.n1_sensor_override_value[s];
+		if (engine.n1SensorOverridden[s]) {
+			double value = engine.n1SensorOverrideVal[s];
 			double percent = (value / N1_MAX_RATED);
 			bool overrideIsFail = std::isnan(value) || percent < 0.0 || percent > 1.25;
-			if (!engine.n1_sensor_forced_anomalous[s] && !overrideIsFail) {
-				engine.n1_sensor_overridden[s] = false;
+			if (!engine.n1SensorForcedAnomal[s] && !overrideIsFail) {
+				engine.n1SensorOverridden[s] = false;
 			}
 		}
 		// EGT 覆盖释放条件：已覆盖 + 非强制异常 + 覆盖值在有效范围 (-5 <= v <= 1200)
-		if (engine.egt_sensor_overridden[s]) {
-			double v = engine.egt_sensor_override_value[s];
+		if (engine.egtSensorOverridden[s]) {
+			double v = engine.egtSensorOverrideVal[s];
 			bool overrideIsFail = std::isnan(v) || v < -5.0 || v > 1200.0;
-			if (!engine.egt_sensor_forced_anomalous[s] && !overrideIsFail) {
-				engine.egt_sensor_overridden[s] = false;
+			if (!engine.egtSensorForcedAnomal[s] && !overrideIsFail) {
+				engine.egtSensorOverridden[s] = false;
 			}
 		}
 	}
@@ -75,10 +75,10 @@ void Engine::stop() {
 	double egt_right = getEgtRight();
 
 	// 如果不是NaN，则将基准值改为当前显示值，就可以实现从显示值开始冷却
-	if (!isnan(n1_left)) leftEngine.n1_base = n1_left;
-	if (!isnan(n1_right)) rightEngine.n1_base = n1_right;
-	if (!isnan(egt_left)) leftEngine.egt_base = egt_left;
-	if (!isnan(egt_right)) rightEngine.egt_base = egt_right;
+	if (!isnan(n1_left)) leftEngine.n1Base = n1_left;
+	if (!isnan(n1_right)) rightEngine.n1Base = n1_right;
+	if (!isnan(egt_left)) leftEngine.egtBase = egt_left;
+	if (!isnan(egt_right)) rightEngine.egtBase = egt_right;
 
 	releaseCoolingOverride(leftEngine);
 	releaseCoolingOverride(rightEngine);
@@ -112,29 +112,29 @@ void Engine::advance(double dt) {
 		case EngineState::STARTING:
 			// 按照题目要求的分段函数进行启动
 			subState = (dt <= 2.0) ? EngineSubState::LINEAR_START : EngineSubState::LOG_START;
-			double n_val = (dt <= 2.0) ? (10000.0 * dt) : (23000.0 * log10(dt - 1.0) + 20000.0);
-			double v_val = (dt <= 2.0) ? (5.0 * dt) : (42.0 * log10(dt - 1.0) + 10.0);
-			double t_val = (dt <= 2.0) ? AMBIENT_TEMP : (900.0 * log10(dt - 1.0) + AMBIENT_TEMP);
+			double nVal = (dt <= 2.0) ? (10000.0 * dt) : (23000.0 * log10(dt - 1.0) + 20000.0);
+			double vVal = (dt <= 2.0) ? (5.0 * dt) : (42.0 * log10(dt - 1.0) + 10.0);
+			double tVal = (dt <= 2.0) ? AMBIENT_TEMP : (900.0 * log10(dt - 1.0) + AMBIENT_TEMP);
 
-			leftEngine.n1_true = rightEngine.n1_true = min(n_val, N1_MAX_RATED);
-			leftEngine.egt_true = rightEngine.egt_true = min(t_val, EGT_MAX);
-			fuelFlow = min(v_val, FUEL_FLOW_MAX);
+			leftEngine.n1True = rightEngine.n1True = min(nVal, N1_MAX_RATED);
+			leftEngine.egtTrue = rightEngine.egtTrue = min(tVal, EGT_MAX);
+			fuelFlow = min(vVal, FUEL_FLOW_MAX);
 			break;
 		case EngineState::STABLE:
 			// 在稳定状态下，引擎参数围绕基准值小幅波动
-			leftEngine.n1_true = leftEngine.n1_base * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
-			leftEngine.egt_true = leftEngine.egt_base * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
-			rightEngine.n1_true = rightEngine.n1_base * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
-			rightEngine.egt_true = rightEngine.egt_base * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
+			leftEngine.n1True = leftEngine.n1Base * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
+			leftEngine.egtTrue = leftEngine.egtBase * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
+			rightEngine.n1True = rightEngine.n1Base * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
+			rightEngine.egtTrue = rightEngine.egtBase * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
 			fuelFlow = min(fuelFlowBase * (1.0 + ((rand() % 601) / 10000.0) - 0.03), FUEL_FLOW_MAX);
 			break;
 		case EngineState::STOPPING:
 			// 按照题目要求的对数函数进行冷却及停止
 			double factor = (dt < 8.0) ? (1.0 - log10(dt + 1.0) / log10(9.0)) : 0.0;
-			leftEngine.n1_true = leftEngine.n1_base * factor;
-			leftEngine.egt_true = AMBIENT_TEMP + (leftEngine.egt_base - AMBIENT_TEMP) * factor;
-			rightEngine.n1_true = rightEngine.n1_base * factor;
-			rightEngine.egt_true = AMBIENT_TEMP + (rightEngine.egt_base - AMBIENT_TEMP) * factor;
+			leftEngine.n1True = leftEngine.n1Base * factor;
+			leftEngine.egtTrue = AMBIENT_TEMP + (leftEngine.egtBase - AMBIENT_TEMP) * factor;
+			rightEngine.n1True = rightEngine.n1Base * factor;
+			rightEngine.egtTrue = AMBIENT_TEMP + (rightEngine.egtBase - AMBIENT_TEMP) * factor;
 			break;
 		default:
 			break;
@@ -163,10 +163,10 @@ void Engine::increaseThrust() {
 	}
 	fuelFlowBase = min(fuelFlowBase + 1.0, FUEL_FLOW_MAX);
 	double increase = 0.03 + (rand() % 21) / 1000.0; // 3% - 5%
-	leftEngine.n1_base = min(leftEngine.n1_base * (1.0 + increase), N1_MAX_RATED);
-	rightEngine.n1_base = min(rightEngine.n1_base * (1.0 + increase), N1_MAX_RATED);
-	leftEngine.egt_base = min(leftEngine.egt_base * (1.0 + increase), EGT_MAX);
-	rightEngine.egt_base = min(rightEngine.egt_base * (1.0 + increase), EGT_MAX);
+	leftEngine.n1Base = min(leftEngine.n1Base * (1.0 + increase), N1_MAX_RATED);
+	rightEngine.n1Base = min(rightEngine.n1Base * (1.0 + increase), N1_MAX_RATED);
+	leftEngine.egtBase = min(leftEngine.egtBase * (1.0 + increase), EGT_MAX);
+	rightEngine.egtBase = min(rightEngine.egtBase * (1.0 + increase), EGT_MAX);
 	cout << "[Engine] Thrust increased.\n";
 }
 
@@ -177,30 +177,30 @@ void Engine::decreaseThrust() {
 	}
 	fuelFlowBase = max(fuelFlowBase - 1.0, 0.0);
 	double decrease = 0.03 + (rand() % 21) / 1000.0; // 3% - 5%
-	leftEngine.n1_base = max(leftEngine.n1_base * (1.0 - decrease), 0.0);
-	rightEngine.n1_base = max(rightEngine.n1_base * (1.0 - decrease), 0.0);
-	leftEngine.egt_base = max(leftEngine.egt_base * (1.0 - decrease), AMBIENT_TEMP);
-	rightEngine.egt_base = max(rightEngine.egt_base * (1.0 - decrease), AMBIENT_TEMP);
+	leftEngine.n1Base = max(leftEngine.n1Base * (1.0 - decrease), 0.0);
+	rightEngine.n1Base = max(rightEngine.n1Base * (1.0 - decrease), 0.0);
+	leftEngine.egtBase = max(leftEngine.egtBase * (1.0 - decrease), AMBIENT_TEMP);
+	rightEngine.egtBase = max(rightEngine.egtBase * (1.0 - decrease), AMBIENT_TEMP);
 	cout << "[Engine] Thrust decreased.\n";
 }
 
 void Engine::updateSensor(SingleEngine& engine) {
 	// 更新N1传感器读数
 	for (int s = 0; s < 2; ++s) {
-		if (engine.n1_sensor_overridden[s]) {
-			engine.n1_sensor[s] = engine.n1_sensor_override_value[s];
+		if (engine.n1SensorOverridden[s]) {
+			engine.n1Sensor[s] = engine.n1SensorOverrideVal[s];
 		}
-		else if (engine.n1_sensor_forced_anomalous[s]) {
+		else if (engine.n1SensorForcedAnomal[s]) {
 			// 强制异常时，保持上次读数不变
 		}
-		else if (engine.n1_sensor_anomalous[s]) {
+		else if (engine.n1SensorAnomal[s]) {
 			// 异常时，输出NaN
-			engine.n1_sensor[s] = numeric_limits<double>::quiet_NaN();
+			engine.n1Sensor[s] = numeric_limits<double>::quiet_NaN();
 		}
 		else {
 			// 正常情况下，读数围绕真实值小幅波动
-			double noise = engine.n1_true * (((rand() % 201) / 10000.0) - 0.01); // ±1%
-			engine.n1_sensor[s] = engine.n1_true + noise;
+			double noise = engine.n1True * (((rand() % 201) / 10000.0) - 0.01); // ±1%
+			engine.n1Sensor[s] = engine.n1True + noise;
 		}
 	}
 }
@@ -210,9 +210,9 @@ double Engine::getDisplayedValue(const SingleEngine& engine, bool isN1) const {
 	double sum = 0.0;
 	int count = 0;
 	for (int s = 0; s < 2; ++s) {
-		bool bad = isN1 ? engine.n1_sensor_anomalous[s] : engine.egt_sensor_anomalous[s];
+		bool bad = isN1 ? engine.n1SensorAnomal[s] : engine.egtSensorAnomal[s];
 		if (!bad) {
-			double value = isN1 ? engine.n1_sensor[s] : engine.egt_sensor[s];
+			double value = isN1 ? engine.n1Sensor[s] : engine.egtSensor[s];
 			if (!isnan(value)) {
 				sum += value;
 				++count;
@@ -259,41 +259,41 @@ EngineSubState Engine::getSubState() const {return subState;}
 double Engine::getSensorValue(int engine_id, int sensor_type, int sensor_id) const {
 	const SingleEngine& engine = (engine_id == 0) ? leftEngine : rightEngine;
 	if (sensor_type == 0) { // N1
-		if (engine.n1_sensor_anomalous[sensor_id])
+		if (engine.n1SensorAnomal[sensor_id])
 			return numeric_limits<double>::quiet_NaN();
-		return engine.n1_sensor[sensor_id];
+		return engine.n1Sensor[sensor_id];
 	}
 	else {
-		if (engine.egt_sensor_anomalous[sensor_id])
+		if (engine.egtSensorAnomal[sensor_id])
 			return numeric_limits<double>::quiet_NaN();
-		return engine.egt_sensor[sensor_id];
+		return engine.egtSensor[sensor_id];
 	}
 }
 
 void Engine::setForcedN1Sensor(int engine_id, int sensor_id, double value) {
 	SingleEngine& eng = (engine_id == 0) ? leftEngine : rightEngine;
 	if (sensor_id < 0 || sensor_id>1) return;
-	eng.n1_sensor_overridden[sensor_id] = true;
-	eng.n1_sensor_override_value[sensor_id] = value;
+	eng.n1SensorOverridden[sensor_id] = true;
+	eng.n1SensorOverrideVal[sensor_id] = value;
 }
 
 void Engine::resetN1SensorOverride(int engine_id, int sensor_id) {
 	SingleEngine& eng = (engine_id == 0) ? leftEngine : rightEngine;
 	if (sensor_id < 0 || sensor_id>1) return;
-	eng.n1_sensor_overridden[sensor_id] = false;
+	eng.n1SensorOverridden[sensor_id] = false;
 }
 
 void Engine::setForcedEGTSensor(int engine_id, int sensor_id, double value) {
 	SingleEngine& eng = (engine_id == 0) ? leftEngine : rightEngine;
 	if (sensor_id < 0 || sensor_id>1) return;
-	eng.egt_sensor_overridden[sensor_id] = true;
-	eng.egt_sensor_override_value[sensor_id] = value;
+	eng.egtSensorOverridden[sensor_id] = true;
+	eng.egtSensorOverrideVal[sensor_id] = value;
 }
 
 void Engine::resetEGTSensorOverride(int engine_id, int sensor_id) {
 	SingleEngine& eng = (engine_id == 0) ? leftEngine : rightEngine;
 	if (sensor_id < 0 || sensor_id>1) return;
-	eng.egt_sensor_overridden[sensor_id] = false;
+	eng.egtSensorOverridden[sensor_id] = false;
 }
 
 void Engine::setForcedFuelReserve(double value) {fuelReserve = value;}
@@ -308,17 +308,17 @@ void Engine::resetForcedFuelFlow() { fuelFlowOverridden = false; }
 // 是否两个传感器均异常
 bool Engine::isN1SystemFault(int engine_id) const {
 	const SingleEngine& eng = (engine_id == 0) ? leftEngine : rightEngine;
-	return eng.n1_sensor_anomalous[0] && eng.n1_sensor_anomalous[1];
+	return eng.n1SensorAnomal[0] && eng.n1SensorAnomal[1];
 }
 bool Engine::isEGTSystemFault(int engine_id) const {
 	const SingleEngine& eng = (engine_id == 0) ? leftEngine : rightEngine;
-	return eng.egt_sensor_anomalous[0] && eng.egt_sensor_anomalous[1];
+	return eng.egtSensorAnomal[0] && eng.egtSensorAnomal[1];
 }
-bool Engine::isN1SensorAnomalous(int engine_id, int s) const {
+bool Engine::isN1SensorAnomal(int engine_id, int s) const {
 	const SingleEngine& eng = (engine_id == 0) ? leftEngine : rightEngine;
-	return (s >= 0 && s < 2) ? eng.n1_sensor_anomalous[s] : false;
+	return (s >= 0 && s < 2) ? eng.n1SensorAnomal[s] : false;
 }
-bool Engine::isEGTSensorAnomalous(int engine_id, int s) const {
+bool Engine::isEGTSensorAnomal(int engine_id, int s) const {
 	const SingleEngine& eng = (engine_id == 0) ? leftEngine : rightEngine;
-	return (s >= 0 && s < 2) ? eng.egt_sensor_anomalous[s] : false;
+	return (s >= 0 && s < 2) ? eng.egtSensorAnomal[s] : false;
 }

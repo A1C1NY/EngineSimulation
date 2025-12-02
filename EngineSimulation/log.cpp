@@ -21,50 +21,50 @@ static ostream& outDouble(ostream& os, double val) {
 
 // 获取从程序启动到现在的时间，单位秒
 double getCurrenTimeSeconds() {
-	static auto start_time = std::chrono::high_resolution_clock::now();
-	auto current_time = std::chrono::high_resolution_clock::now();
-	return std::chrono::duration<double>(current_time - start_time).count();
+	static auto startTime = chrono::high_resolution_clock::now();
+	auto currentTime = chrono::high_resolution_clock::now();
+	return chrono::duration<double>(currentTime - startTime).count();
 }
 
-void logData(Engine& engine, std::ofstream& f, double start_time) {
-	if (!f.is_open()) return;
-	int total_ms = static_cast<int>(start_time * 1000 + 0.5);
+void logData(Engine& engine, ofstream& of, double startTime) {
+	if (!of.is_open()) return;
+	int total_ms = static_cast<int>(startTime * 1000 + 0.5);
 	int seconds = total_ms / 1000;
 	int milliseconds = total_ms % 1000;
-	f << seconds << "." << setfill('0') << setw(3) << milliseconds << ",";
-	f << std::fixed << std::setprecision(1);
+	of << seconds << "." << setfill('0') << setw(3) << milliseconds << ",";
+	of << fixed << setprecision(1);
 	// 依次记录各项数据
-	outDouble(f, engine.getSensorValue(0, 0, 0)) << ",";
-	outDouble(f, engine.getSensorValue(0, 0, 1)) << ",";
-	outDouble(f, engine.getN1Left()) << ",";
-	outDouble(f, engine.getSensorValue(0, 1, 0)) << ",";
-	outDouble(f, engine.getSensorValue(0, 1, 1)) << ",";
-	outDouble(f, engine.getEgtLeft()) << ",";
-	outDouble(f, engine.getSensorValue(1, 0, 0)) << ",";
-	outDouble(f, engine.getSensorValue(1, 0, 1)) << ",";
-	outDouble(f, engine.getN1Right()) << ",";
-	outDouble(f, engine.getSensorValue(1, 1, 0)) << ",";
-	outDouble(f, engine.getSensorValue(1, 1, 1)) << ",";
-	outDouble(f, engine.getEgtRight()) << ",";
-	outDouble(f, engine.getFuelFlow()) << ",";
-	outDouble(f, engine.getFuelReserve()) << ",";
+	outDouble(of, engine.getSensorValue(0, 0, 0)) << ",";
+	outDouble(of, engine.getSensorValue(0, 0, 1)) << ",";
+	outDouble(of, engine.getN1Left()) << ",";
+	outDouble(of, engine.getSensorValue(0, 1, 0)) << ",";
+	outDouble(of, engine.getSensorValue(0, 1, 1)) << ",";
+	outDouble(of, engine.getEgtLeft()) << ",";
+	outDouble(of, engine.getSensorValue(1, 0, 0)) << ",";
+	outDouble(of, engine.getSensorValue(1, 0, 1)) << ",";
+	outDouble(of, engine.getN1Right()) << ",";
+	outDouble(of, engine.getSensorValue(1, 1, 0)) << ",";
+	outDouble(of, engine.getSensorValue(1, 1, 1)) << ",";
+	outDouble(of, engine.getEgtRight()) << ",";
+	outDouble(of, engine.getFuelFlow()) << ",";
+	outDouble(of, engine.getFuelReserve()) << ",";
 	switch (engine.getState()) {
-	case EngineState::OFF:      f << "OFF\n"; break;
-	case EngineState::STARTING: f << "STARTING\n"; break;
-	case EngineState::STABLE:   f << "STABLE\n"; break;
-	case EngineState::STOPPING: f << "STOPPING\n"; break;
+	case EngineState::OFF:      of << "OFF\n"; break;
+	case EngineState::STARTING: of << "STARTING\n"; break;
+	case EngineState::STABLE:   of << "STABLE\n"; break;
+	case EngineState::STOPPING: of << "STOPPING\n"; break;
 	}
 }
 
-void logAlert(Alert& alert, std::ofstream& os) {
+void logAlert(Alert& alert, ofstream& os) {
 	if (!os.is_open()) return;
 
 	static unordered_map<string, double> lastMsg; // 每条消息上次记录时间
 
-	double current_time = getCurrenTimeSeconds();
+	double currentTime = getCurrenTimeSeconds();
 	auto it = lastMsg.find(alert.message);
 	if (it != lastMsg.end()) {
-		if (current_time - it->second < 5.0) {
+		if (currentTime - it->second < 5.0) {
 			// 相同消息5秒内不重复记录
 			return;
 		}
@@ -74,9 +74,8 @@ void logAlert(Alert& alert, std::ofstream& os) {
 	auto time = chrono::system_clock::to_time_t(now);
 	tm buf;
 	localtime_s(&buf, &time);
-	os << std::put_time(&buf, "%Y-%m-%d %H:%M:%S") << " - ALERT: " << alert.message << "\n";
+	os << put_time(&buf, "%Y-%m-%d %H:%M:%S") << " - ALERT: " << alert.message << "\n";
 	lastMsg[alert.message] = time;
-	alert.lastTime = time; // 保持原字段更新（如果其它地方用到）
 
 }
 
@@ -115,6 +114,5 @@ void handleLogging(Engine& engine, ofstream& datafile, ofstream& alertfile, bool
 	logAlert(a, alertfile);// 记录警报
 
 }
-
 
 

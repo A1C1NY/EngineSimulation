@@ -17,12 +17,13 @@ const COLORREF COLOR_AMBER = RGB(255, 165, 0); // 琥珀色 (Caution/Alert)
 const COLORREF COLOR_YELLOW = RGB(255, 255, 0); // 黄色，但语义上是警戒值
 const COLORREF COLOR_GREEN = RGB(0, 255, 0);
 const COLORREF COLOR_BLUE = RGB(0, 0, 255);
+const COLORREF COLOR_LIGHT_GREY = RGB(180, 180, 180);
 const COLORREF COLOR_GREY = RGB(100, 100, 100);
 
 class Gauge {
 public:
 	Gauge(POINT center, int radius, const std::string& label, double max_value);
-	void draw(double value, double base_value, double caution_start, double warning_start) const;
+	void draw(double value, double baseValue, double cautionStart, double warningStart) const;
 private:
     POINT center;
     int radius;
@@ -33,17 +34,17 @@ private:
 
 class Indicator {
 public:
-    Indicator(const RECT& position, const string& text);
+    Indicator(const RECT& position, const std::string& text);
     void draw() const;
     void update();
-    void setActive(const COLORREF new_color = COLOR_AMBER);
+    void setActive(const COLORREF newColor = COLOR_AMBER);
 
-    string getText() const {return label;}
+    std::string getText() const {return label;}
     RECT getPosition() const {return pos;}
 
 private:
     RECT pos;
-    string label;
+    std::string label;
     bool isActive;
 	COLORREF color;
 	double lastActivatedTime;
@@ -67,16 +68,14 @@ struct Alert {
     std::string message;
     COLORREF color;
     double timestamp; 
-    double lastTime; 
 };
 
 class AlertManager {
 public:
-	AlertManager() : currentAlert({ "", COLOR_BLACK, 0.0, 0.0 }) {} // 初始化为空警报
+	AlertManager() : currentAlert({ "", COLOR_BLACK, 0.0}) {} // 初始化为空警报
 
     void triggerAlert(const std::string& message, COLORREF color);
     void update();
-	void draw() const;
 	const Alert& getCurrentAlert() const { return currentAlert; } // const版本
 	Alert& getCurrentAlert() { return currentAlert; } // 非const版本
 	void drawHistory() const;

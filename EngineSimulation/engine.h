@@ -21,20 +21,20 @@ enum class EngineSubState { NONE, LINEAR_START, LOG_START, SHUTDOWN, STABLE_RUN}
 
 // 单个引擎的结构体
 struct SingleEngine {
-	double n1_true = 0.0;  // 真实的N1转速
-	double egt_true = AMBIENT_TEMP;  // 真实的EGT温度
-	double n1_sensor[2] = { 0.0, 0.0 }; // N1传感器读数x2
-	double egt_sensor[2] = { AMBIENT_TEMP, AMBIENT_TEMP }; // EGT传感器读数x2
-	bool n1_sensor_anomalous[2] = { false, false }; // N1传感器异常标志x2
-	bool egt_sensor_anomalous[2] = { false, false }; // EGT传感器异常标志x2
-	bool n1_sensor_overridden[2] = { false, false }; // N1传感器覆盖标志x2(fail时是否需要屏蔽)
-	bool egt_sensor_overridden[2] = { false, false }; // EGT传感器覆盖标志x2(fail时是否需要屏蔽)
-	bool n1_sensor_forced_anomalous[2] = { false, false }; // N1传感器强制异常标志x2（输出保持）
-	bool egt_sensor_forced_anomalous[2] = { false, false }; // EGT传感器强制异常标志x2（输出保持）
-	double n1_sensor_override_value[2] = { 0.0, 0.0 }; // N1传感器覆盖值x2
-	double egt_sensor_override_value[2] = { 0.0, 0.0 }; // EGT传感器覆盖值x2
-    double n1_base = 0.0;
-    double egt_base = AMBIENT_TEMP;
+	double n1True = 0.0;  // 真实的N1转速
+	double egtTrue = AMBIENT_TEMP;  // 真实的EGT温度
+	double n1Sensor[2] = { 0.0, 0.0 }; // N1传感器读数x2
+	double egtSensor[2] = { AMBIENT_TEMP, AMBIENT_TEMP }; // EGT传感器读数x2
+	bool n1SensorAnomal[2] = { false, false }; // N1传感器异常标志x2
+	bool egtSensorAnomal[2] = { false, false }; // EGT传感器异常标志x2
+	bool n1SensorOverridden[2] = { false, false }; // N1传感器覆盖标志x2(fail时是否需要屏蔽)
+	bool egtSensorOverridden[2] = { false, false }; // EGT传感器覆盖标志x2(fail时是否需要屏蔽)
+	bool n1SensorForcedAnomal[2] = { false, false }; // N1传感器强制异常标志x2（输出保持）
+	bool egtSensorForcedAnomal[2] = { false, false }; // EGT传感器强制异常标志x2（输出保持）
+	double n1SensorOverrideVal[2] = { 0.0, 0.0 }; // N1传感器覆盖值x2
+	double egtSensorOverrideVal[2] = { 0.0, 0.0 }; // EGT传感器覆盖值x2
+    double n1Base = 0.0;
+    double egtBase = AMBIENT_TEMP;
 };
 
 class Engine {
@@ -83,8 +83,8 @@ public:
     void setForcedFuelFlow(double value);
     void resetForcedFuelFlow();
 
-    bool isN1SensorAnomalous(int e, int s) const;
-    bool isEGTSensorAnomalous(int e, int s) const;
+    bool isN1SensorAnomal(int e, int s) const;
+    bool isEGTSensorAnomal(int e, int s) const;
     bool isN1SystemFault(int e) const;
     bool isEGTSystemFault(int e) const;
 
