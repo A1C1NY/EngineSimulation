@@ -70,9 +70,9 @@ struct Alert {
     double timestamp; 
 };
 
-class AlertManager {
+class AlertInfo {
 public:
-	AlertManager() : currentAlert({ "", COLOR_BLACK, 0.0}) {} // 初始化为空警报
+	AlertInfo() : currentAlert({ "", COLOR_BLACK, 0.0}) {} // 初始化为空警报
 
     void triggerAlert(const std::string& message, COLORREF color);
     void update();
@@ -88,7 +88,7 @@ private:
 
 
 void initializeIndicators(std::map<std::string, Indicator>& indicators);
-void initializeButtons(std::map<std::string, TriangleButton>& thrust_buttons);
-void handleMouseClick(int x, int y, void* engine_ptr, void* start_flag_ptr, void* stop_flag_ptr, void* thrust_buttons_ptr);
-void initializeUI(const std::string& window_name, void* engine_ptr, void* start_flag_ptr, void* stop_flag_ptr, void* thrust_buttons_ptr);
+void initializeButtons(std::map<std::string, TriangleButton>& thrustButtons);
+void handleMouseClick(int x, int y, void* enginePtr, void* startFlagPtr, void* stopFlagPtr, void* thrustButtonsPtr);
+void initializeUI(const std::string& windowName, void* enginePtr, void* startFlagPtr, void* stopFlagPtr, void* thrustButtonsPtr);
 void updateIndicators();

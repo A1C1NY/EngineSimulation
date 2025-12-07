@@ -79,7 +79,7 @@ void logAlert(Alert& alert, ofstream& os) {
 
 }
 
-void handleLogging(Engine& engine, ofstream& datafile, ofstream& alertfile, bool& logging, AlertManager& alert_manager) {
+void logging(Engine& engine, ofstream& datafile, ofstream& alertfile, bool& logging, AlertInfo& alert_info) {
 	if (engine.getState() != EngineState::OFF && !logging) {
 		auto sysNow = chrono::system_clock::now(); // 获取系统当前时间
 		auto time = chrono::system_clock::to_time_t(sysNow); // 转换为time_t格式
@@ -110,7 +110,7 @@ void handleLogging(Engine& engine, ofstream& datafile, ofstream& alertfile, bool
 
 	logData(engine, datafile, engine.getSimTime());
 
-	Alert& a = alert_manager.getCurrentAlert(); // 获取当前警报
+	Alert& a = alert_info.getCurrentAlert(); // 获取当前警报
 	logAlert(a, alertfile);// 记录警报
 
 }

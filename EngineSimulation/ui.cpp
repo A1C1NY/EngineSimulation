@@ -180,13 +180,13 @@ void TriangleButton::setEnabled(bool isEnabled) {
 	enabled = isEnabled;
 }
 
-double AlertManager::getCurrentTime() const {
+double AlertInfo::getCurrentTime() const {
 	static auto startTime = chrono::high_resolution_clock::now();
 	auto currentTime = chrono::high_resolution_clock::now();
 	return chrono::duration<double>(currentTime - startTime).count();
 }
 
-void AlertManager::triggerAlert(const string& message, COLORREF color) {
+void AlertInfo::triggerAlert(const string& message, COLORREF color) {
 	double currentTime = getCurrentTime();
 	alertHistory.push_back({ message, color, currentTime});
 
@@ -231,7 +231,7 @@ void AlertManager::triggerAlert(const string& message, COLORREF color) {
 	}
 }
 
-void AlertManager::update() {
+void AlertInfo::update() {
 	double currentTime = getCurrentTime();
 	// 如果当前警报存在且超过5秒未更新，则清除
 	if (!currentAlert.message.empty() && (currentTime - currentAlert.timestamp >= 5.0)) {
@@ -243,7 +243,7 @@ void AlertManager::update() {
 	}
 }
 
-void AlertManager::drawHistory() const {
+void AlertInfo::drawHistory() const {
 	int baseY = WINDOW_HEIGHT - 150;
 	int lineHeight = 20;
 	int maxLines = 8;
@@ -262,5 +262,74 @@ void AlertManager::drawHistory() const {
 		wstring wmsg = wstring(alert.message.begin(), alert.message.end());
 		outtextxy(x + 8, y + 2, wmsg.c_str());
 	}
+}
+
+
+void initiallizeIndicators(map<string, Indicator>& indicators) {
+	// map<string, Indicator>直接用string找到对应的Indicator
+	indicators.clear();
+	const int w = 199, h = 25, xStart = 20, yStart = 420, xOffset = 110, yOffset = 30;
+
+	indicators.emplace("N1_L_S1_Fail", Indicator({ xStart, yStart, xStart + w, yStart + h }, "N1 L S1 Fail"));
+	indicators.emplace("N1_L_S2_Fail", Indicator({ xStart + xOffset, yStart, xStart + xOffset + w, yStart + h }, "N1 L S2 Fail"));
+	indicators.emplace("EGT_L_S1_Fail", Indicator({ xStart + 2 * xOffset, yStart, xStart + 2 * xOffset + w, yStart + h }, "EGT L S1 Fail"));
+	indicators.emplace("EGT_L_S2_Fail", Indicator({ xStart + 3 * xOffset, yStart, xStart + 3 * xOffset + w, yStart + h }, "EGT L S2 Fail"));
+	indicators.emplace("FuelResFail", Indicator({ xStart + 4 * xOffset, yStart, xStart + 4 * xOffset + w, yStart + h }, "Fuel Res Fail"));
+
+	indicators.emplace("N1_R_S1_Fail", Indicator({ xStart, yStart + yOffset, xStart + w, yStart + yOffset + h }, "N1 R S1 Fail"));
+	indicators.emplace("N1_R_S2_Fail", Indicator({ xStart + xOffset, yStart + yOffset, xStart + xOffset + w, yStart + yOffset + h }, "N1 R S2 Fail"));
+	indicators.emplace("EGT_R_S1_Fail", Indicator({ xStart + 2 * xOffset, yStart + yOffset, xStart + 2 * xOffset + w, yStart + yOffset + h }, "EGT R S1 Fail"));
+	indicators.emplace("EGT_R_S2_Fail", Indicator({ xStart + 3 * xOffset, yStart + yOffset, xStart + 3 * xOffset + w, yStart + yOffset + h }, "EGT R S2 Fail"));
+	indicators.emplace("FuelFlowFail", Indicator({ xStart + 4 * xOffset, yStart + yOffset, xStart + 4 * xOffset + w, yStart + yOffset + h }, "Fuel Flow Fail"));
+
+	indicators.emplace("LowFuel", Indicator({ xStart, yStart + 2 * yOffset, xStart + w, yStart + 2 * yOffset + h }, "Low Fuel"));
+	indicators.emplace("N1SFail", Indicator({ xStart + xOffset, yStart + 2 * yOffset, xStart + xOffset + w, yStart + 2 * yOffset + h }, "N1 Sys Fail"));
+	indicators.emplace("OverFF", Indicator({ xStart + 2 * xOffset, yStart + 2 * yOffset, xStart + 2 * xOffset + w, yStart + 2 * yOffset + h }, "Over FF"));
+	indicators.emplace("OverSpd1", Indicator({ xStart + 3 * xOffset, yStart + 2 * yOffset, xStart + 3 * xOffset + w, yStart + 2 * yOffset + h }, "OverSpd L"));
+	indicators.emplace("OverSpd2", Indicator({ xStart + 4 * xOffset, yStart + 2 * yOffset, xStart + 4 * xOffset + w, yStart + 2 * yOffset + h }, "OverSpd R"));
+
+	indicators.emplace("EGTSFail", Indicator({ xStart, yStart + 3 * yOffset, xStart + w, yStart + 3 * yOffset + h }, "EGT Sys Fail"));
+	indicators.emplace("OverTemp1", Indicator({ xStart + xOffset, yStart + 3 * yOffset, xStart + xOffset + w, yStart + 3 * yOffset + h }, "OverTemp S1"));
+	indicators.emplace("OverTemp2", Indicator({ xStart + 2 * xOffset, yStart + 3 * yOffset, xStart + 2 * xOffset + w, yStart + 3 * yOffset + h }, "OverTemp S2"));
+	indicators.emplace("OverTemp3", Indicator({ xStart + 3 * xOffset, yStart + 3 * yOffset, xStart + 3 * xOffset + w, yStart + 3 * yOffset + h }, "OverTemp C1"));
+	indicators.emplace("OverTemp4", Indicator({ xStart + 4 * xOffset, yStart + 3 * yOffset, xStart + 4 * xOffset + w, yStart + 3 * yOffset + h }, "OverTemp C2"));
+}
+
+void initializeButtons(std::map<std::string, TriangleButton>& thrustButtons) {
+	thrustButtons.clear();
+	thrustButtons.emplace("ThrustUp", TriangleButton({ 400, 100, 400 + 20, 100 + 14 }, true)); // Up
+	thrustButtons.emplace("ThrustDown", TriangleButton({ 400, 116, 400 + 20, 116 + 14 }, false)); // Down
+}
+
+void handleMouseClick(int x, int y, void* enginePtr, void* startFlagPtr, void* stopFlagPtr, void* thrustButtonsPtr) {
+	if (x >= 150 && x <= 250 && y >= 380 && y <= 410) {
+		if (startFlagPtr) {
+			*(bool*)startFlagPtr = true;
+		}
+	}
+	else if (x >= 260 && x <= 360 && y >= 380 && y <= 410) {
+		if (stopFlagPtr) {
+			*(bool*)stopFlagPtr = true;
+		}
+	}
+	// 推力按钮
+	else if (thrustButtonsPtr && enginePtr) {
+		std::map<std::string, TriangleButton>* thrust_buttons = (std::map<std::string, TriangleButton>*)thrustButtonsPtr;
+
+		// 确保 map 中有这些键
+		if (thrust_buttons->count("ThrustUp") && thrust_buttons->at("ThrustUp").isClicked(x, y)) {
+			((Engine*)enginePtr)->increaseThrust();
+		}
+		else if (thrust_buttons->count("ThrustDown") && thrust_buttons->at("ThrustDown").isClicked(x, y)) {
+			((Engine*)enginePtr)->decreaseThrust();
+		}
+	}
+}
+
+void initializeUI(const string& windowName, void* enginePtr, void* startFlagPtr, void* stopFlagPtr, void* thrustButtonsPtr) {
+	// EasyX Initialization
+	initgraph(WINDOW_WIDTH, WINDOW_HEIGHT, EW_SHOWCONSOLE); // EW_SHOWCONSOLE keeps the console window open
+	setbkcolor(BLACK);
+	cleardevice();
 }
 
