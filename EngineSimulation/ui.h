@@ -72,7 +72,7 @@ struct Alert {
 
 class AlertInfo {
 public:
-	AlertInfo() : currentAlert({ "", COLOR_BLACK, 0.0}) {} // 初始化为空警报
+	AlertInfo() : currentAlert({ "", COLOR_BLACK, 0.0}) {}
 
     void triggerAlert(const std::string& message, COLORREF color);
     void update();
@@ -82,13 +82,12 @@ public:
 
 private:
     Alert currentAlert;
-    std::deque<Alert> alertHistory; // 用于UI显示
+    std::deque<Alert> alertHistory;
     double getCurrentTime() const;
-};
+}; // ← 这里补上分号
 
 
 void initializeIndicators(std::map<std::string, Indicator>& indicators);
 void initializeButtons(std::map<std::string, TriangleButton>& thrustButtons);
 void handleMouseClick(int x, int y, void* enginePtr, void* startFlagPtr, void* stopFlagPtr, void* thrustButtonsPtr);
 void initializeUI(const std::string& windowName, void* enginePtr, void* startFlagPtr, void* stopFlagPtr, void* thrustButtonsPtr);
-void updateIndicators();

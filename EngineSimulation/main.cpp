@@ -1,0 +1,256 @@
+#include <vector>
+#include <map>
+#include <string>
+#include <fstream>
+#include <thread> // 用于输入指令的线程
+#include <ctime>
+#include <iostream>
+#include <chrono>
+#include <graphics.h> // EasyX header
+#include "engine.h"
+#include "ui.h"
+#include "ui_draw.h"
+#include "event.h"
+#include "log.h"
+using namespace std;
+
+Engine engine;
+map<string, Indicator> indicators;
+map<string, TriangleButton> thrust_buttons;
+AlertInfo alertInfo;
+bool startButtonPressed = false;
+bool stopButtonPressed = false;
+
+bool cmdThreadRunning = true;
+thread cmdThread;
+ofstream data_log_file;
+ofstream alert_log_file;
+
+bool isLogging = false;
+
+
+static void updateIndicators(Engine& engine, map<string, Indicator>& indicators) {
+	// 更新各个指示灯时间状态
+	for (auto& pair : indicators) {
+		pair.second.update();
+	}
+
+	// 获取发动机状态
+	EngineState state = engine.getState();
+	EngineSubState subState = engine.getSubState();
+
+    std::string highest_alert_msg;
+    COLORREF highest_alert_color = COLOR_BLACK;
+	// 按照优先级设置警报函数
+    auto set_alert = [&](const std::string& msg, const COLORREF color) {
+        if (msg.empty()) return;
+        if (color == COLOR_RED ||
+            (color == COLOR_AMBER && highest_alert_color != COLOR_RED) ||
+            (color == COLOR_WHITE && highest_alert_color != COLOR_RED && highest_alert_color != COLOR_AMBER)) {
+            highest_alert_msg = msg;
+            highest_alert_color = color;
+        }
+    };
+
+    // 更换颜色
+    if (engine.isN1SensorAnomal(0, 0)) { indicators.at("N1_L_S1_Fail").setActive(COLOR_WHITE); set_alert("N1 SENSOR 1 LEFT ANOMALY", COLOR_WHITE); }
+	if (engine.isN1SensorAnomal(0, 1)) { indicators.at("N1_L_S2_Fail").setActive(COLOR_WHITE); set_alert("N1 SENSOR 2 LEFT ANOMALY", COLOR_WHITE); }
+	if (engine.isEGTSensorAnomal(0, 0)) { indicators.at("EGT_L_S1_Fail").setActive(COLOR_WHITE); set_alert("EGT SENSOR 1 LEFT ANOMALY", COLOR_WHITE); }
+	if (engine.isEGTSensorAnomal(0, 1)) { indicators.at("EGT_L_S2_Fail").setActive(COLOR_WHITE); set_alert("EGT SENSOR 2 LEFT ANOMALY", COLOR_WHITE); }
+	if (engine.isFuelReserveSensorInvalid()) { indicators.at("FuelResFail").setActive(COLOR_WHITE); set_alert("FUEL RESERVE SENSOR INVALID", COLOR_WHITE); }
+	if (engine.isN1SensorAnomal(1, 0)) { indicators.at("N1_R_S1_Fail").setActive(COLOR_WHITE); set_alert("N1 SENSOR 1 RIGHT ANOMALY", COLOR_WHITE); }
+	if (engine.isN1SensorAnomal(1, 1)) { indicators.at("N1_R_S2_Fail").setActive(COLOR_WHITE); set_alert("N1 SENSOR 2 RIGHT ANOMALY", COLOR_WHITE); }
+	if (engine.isEGTSensorAnomal(1, 0)) { indicators.at("EGT_R_S1_Fail").setActive(COLOR_WHITE); set_alert("EGT SENSOR 1 RIGHT ANOMALY", COLOR_WHITE); }
+	if (engine.isEGTSensorAnomal(1, 1)) { indicators.at("EGT_R_S2_Fail").setActive(COLOR_WHITE); set_alert("EGT SENSOR 2 RIGHT ANOMALY", COLOR_WHITE); }
+
+    if (engine.isN1SystemFault(0) || engine.isN1SystemFault(1)) {
+        indicators.at("N1SFail").setActive(COLOR_AMBER);
+        set_alert("N1 SYSTEM FAULT", COLOR_AMBER);
+    }
+    if (engine.isEGTSystemFault(0) || engine.isEGTSystemFault(1)) {
+        indicators.at("EGTSFail").setActive(COLOR_AMBER);
+        set_alert("EGT SYSTEM FAULT", COLOR_AMBER);
+    }
+    if (engine.isN1SystemFault(0) && engine.isN1SystemFault(1)) {
+        indicators.at("N1SFail").setActive(COLOR_RED);
+        set_alert("DUAL N1 SYSTEM FAILURE - SHUTDOWN", COLOR_RED);
+        if (state != EngineState::STOPPING && state != EngineState::OFF) engine.stop();
+    }
+    if (engine.isEGTSystemFault(0) && engine.isEGTSystemFault(1)) {
+        indicators.at("EGTSFail").setActive(COLOR_RED);
+        set_alert("DUAL EGT SYSTEM FAILURE - SHUTDOWN", COLOR_RED);
+        if (state != EngineState::STOPPING && state != EngineState::OFF) engine.stop();
+    }
+
+
+    double fuelRes = engine.getFuelReserve();
+    double fuelFlow = engine.getFuelFlow();
+    if (engine.isFuelReserveSensorInvalid()) {
+        indicators.at("FuelResFail").setActive(COLOR_RED);
+        set_alert("FUEL RESERVE SENSOR INVALID", COLOR_RED);
+    }
+    else if (!std::isnan(fuelRes)) {
+        if (fuelRes <= 0.0 && state != EngineState::OFF) {
+            indicators.at("LowFuel").setActive(COLOR_RED);
+            set_alert("FUEL DEPLETED - ENGINE SHUTDOWN", COLOR_RED);
+        }
+        else if (fuelRes < 1000.0 && state != EngineState::OFF) {
+            indicators.at("LowFuel").setActive(COLOR_AMBER);
+            set_alert("LOW FUEL RESERVE", COLOR_AMBER);
+        }
+    }
+    if (engine.isFuelFlowSensorInvalid()) {
+        indicators.at("FuelFlowFail").setActive(COLOR_AMBER);
+        set_alert("FUEL FLOW SENSOR INVALID", COLOR_AMBER);
+    }
+    else if (!std::isnan(fuelFlow) && fuelFlow > FUEL_FLOW_MAX) {
+        indicators.at("OverFF").setActive(COLOR_AMBER);
+        set_alert("FUEL FLOW EXCEEDED LIMIT", COLOR_AMBER);
+    }
+
+    double n1L_pct = engine.getN1LeftPercentage();
+    double n1R_pct = engine.getN1RightPercentage();
+    if (!std::isnan(n1L_pct)) {
+        if (n1L_pct > 120.0) {
+            indicators.at("OverSpd1").setActive(COLOR_RED);
+            set_alert("N1 LEFT OVERSPEED - SHUTDOWN", COLOR_RED);
+            if (state != EngineState::STOPPING && state != EngineState::OFF) engine.stop();
+        }
+        else if (n1L_pct > 105.0) {
+            indicators.at("OverSpd1").setActive(COLOR_AMBER);
+            set_alert("N1 LEFT OVERSPEED CAUTION", COLOR_AMBER);
+        }
+    }
+    if (!std::isnan(n1R_pct)) {
+        if (n1R_pct > 120.0) {
+            indicators.at("OverSpd2").setActive(COLOR_RED);
+            set_alert("N1 RIGHT OVERSPEED - SHUTDOWN", COLOR_RED);
+            if (state != EngineState::STOPPING && state != EngineState::OFF) engine.stop();
+        }
+        else if (n1R_pct > 105.0) {
+            indicators.at("OverSpd2").setActive(COLOR_AMBER);
+            set_alert("N1 RIGHT OVERSPEED CAUTION", COLOR_AMBER);
+        }
+    }
+
+    bool isStartingPhase = (subState == EngineSubState::LINEAR_START || subState == EngineSubState::LOG_START);
+    double egtL = engine.getEgtLeft();
+    double egtR = engine.getEgtRight();
+
+    if (isStartingPhase) {
+        if ((!std::isnan(egtL) && egtL > 1000.0) || (!std::isnan(egtR) && egtR > 1000.0)) {
+            indicators.at("OverTemp2").setActive(COLOR_RED);
+            set_alert("EGT STARTING OVERTEMP - SHUTDOWN", COLOR_RED);
+            if (state != EngineState::STOPPING && state != EngineState::OFF) engine.stop();
+        }
+        else if ((!std::isnan(egtL) && egtL > 850.0) || (!std::isnan(egtR) && egtR > 850.0)) {
+            indicators.at("OverTemp1").setActive(COLOR_AMBER);
+            set_alert("EGT STARTING OVERTEMP CAUTION", COLOR_AMBER);
+        }
+    }
+    else if (state == EngineState::STABLE) {
+        if ((!std::isnan(egtL) && egtL > 1100.0) || (!std::isnan(egtR) && egtR > 1100.0)) {
+            indicators.at("OverTemp4").setActive(COLOR_RED);
+            set_alert("EGT STABLE OVERTEMP - SHUTDOWN", COLOR_RED);
+            if (state != EngineState::STOPPING && state != EngineState::OFF) engine.stop();
+        }
+        else if ((!std::isnan(egtL) && egtL > 950.0) || (!std::isnan(egtR) && egtR > 950.0)) {
+            indicators.at("OverTemp3").setActive(COLOR_AMBER);
+            set_alert("EGT STABLE OVERTEMP CAUTION", COLOR_AMBER);
+        }
+    }
+
+    alertInfo.triggerAlert(highest_alert_msg, highest_alert_color);
+
+    bool stable = (engine.getState() == EngineState::STABLE);
+    if (thrust_buttons.count("ThrustUp")) thrust_buttons.at("ThrustUp").setEnabled(stable);
+    if (thrust_buttons.count("ThrustDown")) thrust_buttons.at("ThrustDown").setEnabled(stable);
+}
+
+int main() {
+    const std::string WINDOW_NAME = "Virtual Engine Monitor (EICAS)";
+
+    // EasyX 初始化
+    initializeUI(WINDOW_NAME, &engine, &startButtonPressed, &stopButtonPressed, &thrust_buttons);
+
+    // 初始化 indicators 和 thrust_buttons（在 initializeUI 之后）
+    initializeIndicators(indicators);
+    initializeButtons(thrust_buttons);
+
+    cmdThread = std::thread(commandLoop, std::ref(cmdThreadRunning), std::ref(engine));
+
+    std::vector<Gauge> gauges;
+    // EasyX 的 POINT 是 {x, y}
+    // N1_MAX_RATED 和 EGT_MAX 假设在 engine.h 中定义
+    gauges.emplace_back(POINT{ 150, 120 }, 80, "N1_L", N1_MAX_RATED);
+    gauges.emplace_back(POINT{ 360, 120 }, 80, "N1_R", N1_MAX_RATED);
+    gauges.emplace_back(POINT{ 150, 300 }, 80, "EGT_L", EGT_MAX * 0.8);
+    gauges.emplace_back(POINT{ 360, 300 }, 80, "EGT_R", EGT_MAX * 0.8);
+
+    // 替换 OpenCV 计时器
+    double lastWall = getCurrenTimeSeconds();
+    double accum = 0.0;
+    const double STEP = 0.005;
+
+    // 开启双缓冲绘图
+    BeginBatchDraw();
+
+    while (cmdThreadRunning) {
+        double now = getCurrenTimeSeconds();
+        double frameDt = now - lastWall;
+        if (frameDt < 0) frameDt = 0;
+        if (frameDt > 0.05) frameDt = 0.05;
+        lastWall = now;
+        accum += frameDt;
+
+        while (accum >= STEP) {
+            engine.advance(STEP);
+            alertInfo.update();
+            logging(engine, data_log_file, alert_log_file, isLogging, alertInfo);
+            accum -= STEP;
+        }
+
+        if (startButtonPressed) {
+            engine.start();
+            startButtonPressed = false;
+        }
+        if (stopButtonPressed) {
+            engine.stop();
+            stopButtonPressed = false;
+        }
+
+        updateIndicators(engine, indicators);
+
+        // EasyX 绘图
+        drawUI(gauges, indicators, thrust_buttons, engine, alertInfo);
+
+        // 处理鼠标消息
+        ExMessage msg;
+        while (peekmessage(&msg, EM_MOUSE)) {
+            if (msg.message == WM_LBUTTONDOWN) {
+                handleMouseClick(msg.x, msg.y, &engine, &startButtonPressed, &stopButtonPressed, &thrust_buttons);
+            }
+        }
+        if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
+            cmdThreadRunning = false;
+        }
+
+        Sleep(1); 
+    }
+
+    EndBatchDraw();
+    closegraph(); // 关闭窗口
+
+    if (cmdThread.joinable()) {
+        cmdThreadRunning = false;
+        // 为了确保线程能退出，需要发送一个空命令或等待
+        cmdThread.join();
+    }
+
+    if (logging) {
+        if (data_log_file.is_open()) data_log_file.close();
+        if (alert_log_file.is_open()) alert_log_file.close();
+    }
+
+    return 0;
+}

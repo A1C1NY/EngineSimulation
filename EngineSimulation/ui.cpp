@@ -1,4 +1,4 @@
-#include "ui.h"
+ï»¿#include "ui.h"
 #include "log.h"
 #include <iomanip>
 #include <sstream>
@@ -21,7 +21,7 @@ void Gauge::draw(double value, double baseValue, double cautionStart, double war
 	int thickness = 1;
 	
 
-	// ÏÈ»­Ò»¸ö¿ÕĞÄµÄÉÈĞÎ£¨0-225¡ã£©
+	// å…ˆç”»ä¸€ä¸ªç©ºå¿ƒçš„æ‰‡å½¢ï¼ˆ0-225Â°ï¼‰
 	setlinecolor(COLOR_WHITE);
 	setfillcolor(COLOR_BLACK);
 	fillpie(Gaugecenter.x - GaugeRadius, Gaugecenter.y - GaugeRadius,
@@ -29,7 +29,7 @@ void Gauge::draw(double value, double baseValue, double cautionStart, double war
 		0, 225);
 
 	if (isnan(value)) {
-		// 0¡ã°ë¾¶ÊıÏÔ¿òÀïĞ´NaN
+		// 0Â°åŠå¾„æ•°æ˜¾æ¡†é‡Œå†™NaN
 		setfillcolor(COLOR_BLACK);
 		solidrectangle(Gaugecenter.x + radius, Gaugecenter.y - radius * 0.2,
 			Gaugecenter.x + radius * 0.4, Gaugecenter.y);
@@ -43,7 +43,7 @@ void Gauge::draw(double value, double baseValue, double cautionStart, double war
 			Gaugecenter.x + radius * 0.4, Gaugecenter.y);
 		double currentAngle = valueToAngle(value);
 		COLORREF currentColor = COLOR_GREY;
-		// ¸ù¾İÊıÖµÉè¶¨ÑÕÉ«
+		// æ ¹æ®æ•°å€¼è®¾å®šé¢œè‰²
 		if (value >= warningStart) {
 			currentColor = COLOR_RED;
 		}
@@ -57,7 +57,7 @@ void Gauge::draw(double value, double baseValue, double cautionStart, double war
 			Gaugecenter.x + GaugeRadius * 0.9, Gaugecenter.y + GaugeRadius * 0.9,
 			0, currentAngle);
 
-		// Ğ´Êı×Ö
+		// å†™æ•°å­—
 		setfillcolor(COLOR_BLACK);
 		solidrectangle(Gaugecenter.x + radius, Gaugecenter.y - radius * 0.2,
 			Gaugecenter.x + radius * 0.4, Gaugecenter.y);
@@ -67,9 +67,9 @@ void Gauge::draw(double value, double baseValue, double cautionStart, double war
 		double displayValue = value;
 
 		if (label.find("N1") != string::npos) {
-			displayValue = (value / 40000.0) * 100.0; // N1ÏÔÊ¾°Ù·Ö±È
+			displayValue = (value / 40000.0) * 100.0; // N1æ˜¾ç¤ºç™¾åˆ†æ¯”
 
-			// ±£Áô 1 Î»Ğ¡ÊıµÄ wstring
+			// ä¿ç•™ 1 ä½å°æ•°çš„ wstring
 			wostringstream wss;
 			wss << fixed << setprecision(1) << displayValue;
 			wstring valStr = wss.str();
@@ -77,14 +77,14 @@ void Gauge::draw(double value, double baseValue, double cautionStart, double war
 			outtextxy(Gaugecenter.x + radius * 0.42, Gaugecenter.y - radius * 0.15, valStr.c_str());
 		}
 		else {
-			// ±£Áôµ½ÕûÊı
+			// ä¿ç•™åˆ°æ•´æ•°
 			wostringstream wss;
 			wss << fixed << setprecision(0) << displayValue;
 			wstring valStr = wss.str();
 			outtextxy(Gaugecenter.x + radius * 0.42, Gaugecenter.y - radius * 0.15, valStr.c_str());
 		}
 	}
-	// ÒÇ±í±êÇ©
+	// ä»ªè¡¨æ ‡ç­¾
 	settextcolor(COLOR_WHITE);
 	settextstyle(20, 0, _T("Consolas"));
 	outtextxy(Gaugecenter.x - radius * 0.3, Gaugecenter.y - radius * 0.3, wstring(label.begin(), label.end()).c_str());
@@ -94,13 +94,13 @@ Indicator::Indicator(const RECT& position, const std::string& text)
 	: pos(position), label(text), isActive(false), color(COLOR_GREY), lastActivatedTime(0.0) {}
 
 void Indicator::draw() const {
-	// »­±ß¿ò
+	// ç”»è¾¹æ¡†
 	setlinecolor(COLOR_WHITE);
 	rectangle(pos.left, pos.top, pos.right, pos.bottom);
-	// Ìî³äÑÕÉ«
+	// å¡«å……é¢œè‰²
 	setfillcolor(color);
 	solidrectangle(pos.left + 1, pos.top + 1, pos.right - 1, pos.bottom - 1);
-	// Ğ´ÎÄ×Ö
+	// å†™æ–‡å­—
 	settextcolor(isActive ? COLOR_BLACK : COLOR_WHITE);
 	setbkmode(TRANSPARENT);
 	settextstyle(20, 0, _T("Consolas"));
@@ -114,8 +114,9 @@ void Indicator::draw() const {
 void Indicator::update() {
 	if (isActive) {
 		double currentTime = getCurrenTimeSeconds();
-		if (currentTime - lastActivatedTime >= 2.5) {
+		if (currentTime - lastActivatedTime >= 2) {
 			isActive = false;
+			color = COLOR_GREY;
 		}
 	}
 }
@@ -123,27 +124,36 @@ void Indicator::update() {
 void Indicator::setActive(const COLORREF newColor) {
 	double currentTime = getCurrenTimeSeconds();
 
-	if (isActive) {
+	// å¦‚æœå·²æ¿€æ´»ä¸”é¢œè‰²ç›¸åŒï¼Œåªåˆ·æ–°æ—¶é—´æˆ³ï¼ˆä¿æŒæŒç»­æ˜¾ç¤ºï¼‰
+	if (isActive && color == newColor) {
+		lastActivatedTime = currentTime;
+		return;
+	}
+
+	if (!isActive) {
+		// æŒ‡ç¤ºç¯æœªæ¿€æ´»ï¼Œç›´æ¥æ¿€æ´»
+		isActive = true;
+		color = newColor;
+		lastActivatedTime = currentTime;
+	}
+	else {
+		// å·²æ¿€æ´»ï¼ŒæŒ‰ä¼˜å…ˆçº§åˆ¤æ–­æ˜¯å¦æ›´æ–°é¢œè‰²
 		if (newColor == COLOR_RED) {
 			color = COLOR_RED;
 			lastActivatedTime = currentTime;
 		}
-		else if (color == COLOR_RED) {
-			lastActivatedTime = currentTime; // ±£³ÖºìÉ«×´Ì¬Ê±¼ä
-		}
-		else if (newColor == COLOR_AMBER) {
+		else if (newColor == COLOR_AMBER && color != COLOR_RED) {
 			color = COLOR_AMBER;
 			lastActivatedTime = currentTime;
 		}
-		else {
+		else if (newColor == COLOR_WHITE && color != COLOR_RED && color != COLOR_AMBER) {
 			color = newColor;
-			lastActivatedTime = currentTime; // ±£³Öµ±Ç°×´Ì¬Ê±¼ä
+			lastActivatedTime = currentTime;
 		}
-	}
-	else {
-		isActive = true;
-		color = newColor;
-		lastActivatedTime = currentTime;
+		else {
+			// æ–°é¢œè‰²ä¼˜å…ˆçº§ä¸é«˜äºå½“å‰é¢œè‰²ï¼Œåªåˆ·æ–°æ—¶é—´æˆ³
+			lastActivatedTime = currentTime;
+		}
 	}
 }
 
@@ -157,13 +167,13 @@ void TriangleButton::draw() const {
 
 	POINT points[3];
 	if (direction) {
-		// ÏòÉÏÈı½ÇĞÎ
+		// å‘ä¸Šä¸‰è§’å½¢
 		points[0] = { (rect.left + rect.right) / 2, rect.top };
 		points[1] = { rect.left, rect.bottom };
 		points[2] = { rect.right, rect.bottom };
 	}
 	else {
-		// ÏòÏÂÈı½ÇĞÎ
+		// å‘ä¸‹ä¸‰è§’å½¢
 		points[0] = { rect.left, rect.top };
 		points[1] = { rect.right, rect.top };
 		points[2] = { (rect.left + rect.right) / 2, rect.bottom };
@@ -190,8 +200,8 @@ void AlertInfo::triggerAlert(const string& message, COLORREF color) {
 	double currentTime = getCurrentTime();
 	alertHistory.push_back({ message, color, currentTime});
 
-	// °´ÕÕRed > Amber > WhiteÓÅÏÈ¼¶¸üĞÂµ±Ç°¾¯±¨
-	// Ö»ÓĞĞÂ¾¯±¨ÑÕÉ«ÓÅÏÈ¼¶¸ü¸ßÊ±²Å¸üĞÂµ±Ç°¾¯±¨
+	// æŒ‰ç…§Red > Amber > Whiteä¼˜å…ˆçº§æ›´æ–°å½“å‰è­¦æŠ¥
+	// åªæœ‰æ–°è­¦æŠ¥é¢œè‰²ä¼˜å…ˆçº§æ›´é«˜æ—¶æ‰æ›´æ–°å½“å‰è­¦æŠ¥
 	bool higherPriority = false;
 	if (currentAlert.message.empty()) {
 		higherPriority = true;
@@ -203,17 +213,17 @@ void AlertInfo::triggerAlert(const string& message, COLORREF color) {
 		higherPriority = true;
 	}
 	else if (color == COLOR_WHITE && currentAlert.color == COLOR_BLACK) {
-		higherPriority = true; // WHITE¶ÔÓÚÎŞ¾¯±¨ÊÇ¸ü¸ßÓÅÏÈ¼¶
+		higherPriority = true; // WHITEå¯¹äºæ— è­¦æŠ¥æ˜¯æ›´é«˜ä¼˜å…ˆçº§
 	}
 
-	// Èç¹ûÓÅÏÈ¼¶¸ü¸ß£¬»òµÈ¼¶ÏàÍ¬µ«ÊÇĞÂ¾¯±¨£¬Ôò¸üĞÂµ±Ç°¾¯±¨
+	// å¦‚æœä¼˜å…ˆçº§æ›´é«˜ï¼Œæˆ–ç­‰çº§ç›¸åŒä½†æ˜¯æ–°è­¦æŠ¥ï¼Œåˆ™æ›´æ–°å½“å‰è­¦æŠ¥
 	if (higherPriority || (color == currentAlert.color && message != currentAlert.message)) {
 		currentAlert.message = message;
 		currentAlert.color = color;
 		currentAlert.timestamp = currentTime;
 	}
 	else {
-		// ·ñÔòÖ»¸üĞÂµ±Ç°¾¯±¨µÄ×îºóÊ±¼ä
+		// å¦åˆ™åªæ›´æ–°å½“å‰è­¦æŠ¥çš„æœ€åæ—¶é—´
 		currentAlert.timestamp = currentTime;
 	}
 
@@ -233,11 +243,11 @@ void AlertInfo::triggerAlert(const string& message, COLORREF color) {
 
 void AlertInfo::update() {
 	double currentTime = getCurrentTime();
-	// Èç¹ûµ±Ç°¾¯±¨´æÔÚÇÒ³¬¹ı5ÃëÎ´¸üĞÂ£¬ÔòÇå³ı
+	// å¦‚æœå½“å‰è­¦æŠ¥å­˜åœ¨ä¸”è¶…è¿‡5ç§’æœªæ›´æ–°ï¼Œåˆ™æ¸…é™¤
 	if (!currentAlert.message.empty() && (currentTime - currentAlert.timestamp >= 5.0)) {
 		currentAlert = { "", COLOR_BLACK, 0.0 };
 	}
-	// ÇåÀíÀúÊ·¾¯±¨
+	// æ¸…ç†å†å²è­¦æŠ¥
 	while (!alertHistory.empty() && currentTime - currentAlert.timestamp >= 5.0) {
 		alertHistory.pop_front();
 	}
@@ -265,8 +275,8 @@ void AlertInfo::drawHistory() const {
 }
 
 
-void initiallizeIndicators(map<string, Indicator>& indicators) {
-	// map<string, Indicator>Ö±½ÓÓÃstringÕÒµ½¶ÔÓ¦µÄIndicator
+void initializeIndicators(map<string, Indicator>& indicators) {
+	// map<string, Indicator>ç›´æ¥ç”¨stringæ‰¾åˆ°å¯¹åº”çš„Indicator
 	indicators.clear();
 	const int w = 199, h = 25, xStart = 20, yStart = 420, xOffset = 110, yOffset = 30;
 
@@ -312,11 +322,11 @@ void handleMouseClick(int x, int y, void* enginePtr, void* startFlagPtr, void* s
 			*(bool*)stopFlagPtr = true;
 		}
 	}
-	// ÍÆÁ¦°´Å¥
+	// æ¨åŠ›æŒ‰é’®
 	else if (thrustButtonsPtr && enginePtr) {
 		std::map<std::string, TriangleButton>* thrust_buttons = (std::map<std::string, TriangleButton>*)thrustButtonsPtr;
 
-		// È·±£ map ÖĞÓĞÕâĞ©¼ü
+		// ç¡®ä¿ map ä¸­æœ‰è¿™äº›é”®
 		if (thrust_buttons->count("ThrustUp") && thrust_buttons->at("ThrustUp").isClicked(x, y)) {
 			((Engine*)enginePtr)->increaseThrust();
 		}

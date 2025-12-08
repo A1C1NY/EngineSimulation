@@ -1,15 +1,15 @@
-#include "engine.h"
+ï»¿#include "engine.h"
 #include <iostream>
 #include <limits>
 using namespace std;
 
 Engine::Engine() {
-	srand(static_cast<unsigned int>(time(nullptr)));  // ¸ù¾İµ±Ç°Ê±¼äµÄËæ»úÖÖ×Ó
+	srand(static_cast<unsigned int>(time(nullptr)));  // æ ¹æ®å½“å‰æ—¶é—´çš„éšæœºç§å­
 	resetParameters();
 }
 
 void Engine::resetParameters() {
-	// ÖØÖÃÒıÇæ²ÎÊıµ½³õÊ¼×´Ì¬
+	// é‡ç½®å¼•æ“å‚æ•°åˆ°åˆå§‹çŠ¶æ€
 	state = EngineState::OFF;
 	subState = EngineSubState::NONE;
 	simElapsed = 0.0;
@@ -22,8 +22,8 @@ void Engine::resetParameters() {
 	fuelReserveSensorInvalid = false;
 	fuelFlowSensorInvalid = false;
 	fuelFlowOverridden = false;
-	leftEngine = SingleEngine(); // ÓÃ¹¹Ôìº¯ÊıÖØÖÃ×óÒıÇæ
-	rightEngine = SingleEngine(); // ÓÃ¹¹Ôìº¯ÊıÖØÖÃÓÒÒıÇæ
+	leftEngine = SingleEngine(); // ç”¨æ„é€ å‡½æ•°é‡ç½®å·¦å¼•æ“
+	rightEngine = SingleEngine(); // ç”¨æ„é€ å‡½æ•°é‡ç½®å³å¼•æ“
 }
 
 void Engine::start() {
@@ -39,10 +39,10 @@ void Engine::start() {
 	}
 }
 
-// ½â³ı´«¸ĞÆ÷¸²¸Ç
+// è§£é™¤ä¼ æ„Ÿå™¨è¦†ç›–
 static void releaseCoolingOverride(SingleEngine& engine) {
 	for (int s = 0; s < 2; ++s) {
-		// N1 ¸²¸ÇÊÍ·ÅÌõ¼ş£ºÒÑ¸²¸Ç + ·ÇÇ¿ÖÆÒì³£ + ¸²¸ÇÖµÔÚÓĞĞ§·¶Î§ (0 <= v <= 1.25 * 40000)
+		// N1 è¦†ç›–é‡Šæ”¾æ¡ä»¶ï¼šå·²è¦†ç›– + éå¼ºåˆ¶å¼‚å¸¸ + è¦†ç›–å€¼åœ¨æœ‰æ•ˆèŒƒå›´ (0 <= v <= 1.25 * 40000)
 		if (engine.n1SensorOverridden[s]) {
 			double value = engine.n1SensorOverrideVal[s];
 			double percent = (value / N1_MAX_RATED);
@@ -51,7 +51,7 @@ static void releaseCoolingOverride(SingleEngine& engine) {
 				engine.n1SensorOverridden[s] = false;
 			}
 		}
-		// EGT ¸²¸ÇÊÍ·ÅÌõ¼ş£ºÒÑ¸²¸Ç + ·ÇÇ¿ÖÆÒì³£ + ¸²¸ÇÖµÔÚÓĞĞ§·¶Î§ (-5 <= v <= 1200)
+		// EGT è¦†ç›–é‡Šæ”¾æ¡ä»¶ï¼šå·²è¦†ç›– + éå¼ºåˆ¶å¼‚å¸¸ + è¦†ç›–å€¼åœ¨æœ‰æ•ˆèŒƒå›´ (-5 <= v <= 1200)
 		if (engine.egtSensorOverridden[s]) {
 			double v = engine.egtSensorOverrideVal[s];
 			bool overrideIsFail = std::isnan(v) || v < -5.0 || v > 1200.0;
@@ -68,13 +68,13 @@ void Engine::stop() {
 		return;
 	}
 
-	// ĞèÒª´ÓÏÔÊ¾Öµ¿ªÊ¼ÀäÈ´£¨·ûºÏ³£Àí£©
+	// éœ€è¦ä»æ˜¾ç¤ºå€¼å¼€å§‹å†·å´ï¼ˆç¬¦åˆå¸¸ç†ï¼‰
 	double n1_left = getN1Left();
 	double n1_right = getN1Right();
 	double egt_left = getEgtLeft();
 	double egt_right = getEgtRight();
 
-	// Èç¹û²»ÊÇNaN£¬Ôò½«»ù×¼Öµ¸ÄÎªµ±Ç°ÏÔÊ¾Öµ£¬¾Í¿ÉÒÔÊµÏÖ´ÓÏÔÊ¾Öµ¿ªÊ¼ÀäÈ´
+	// å¦‚æœä¸æ˜¯NaNï¼Œåˆ™å°†åŸºå‡†å€¼æ”¹ä¸ºå½“å‰æ˜¾ç¤ºå€¼ï¼Œå°±å¯ä»¥å®ç°ä»æ˜¾ç¤ºå€¼å¼€å§‹å†·å´
 	if (!isnan(n1_left)) leftEngine.n1Base = n1_left;
 	if (!isnan(n1_right)) rightEngine.n1Base = n1_right;
 	if (!isnan(egt_left)) leftEngine.egtBase = egt_left;
@@ -97,7 +97,9 @@ void Engine::advance(double dt) {
 		return;
 	}
 
-	// ´«¸ĞÆ÷ÎŞĞ§¼ì²é
+	simElapsed += dt;
+
+	// ä¼ æ„Ÿå™¨æ— æ•ˆæ£€æŸ¥
 	if (fuelReserve < 0.0 || fuelReserve > FUEL_CAPACITY) {
 		fuelReserveSensorInvalid = true;
 	}
@@ -105,58 +107,83 @@ void Engine::advance(double dt) {
 		stop();
 	}
 
-	simElapsed += dt;
-
-	// ¸üĞÂÒıÇæ×´Ì¬
+	// æ›´æ–°å¼•æ“çŠ¶æ€
 	switch (state) {
-		case EngineState::STARTING:
-			// °´ÕÕÌâÄ¿ÒªÇóµÄ·Ö¶Îº¯Êı½øĞĞÆô¶¯
-			subState = (dt <= 2.0) ? EngineSubState::LINEAR_START : EngineSubState::LOG_START;
-			double nVal = (dt <= 2.0) ? (10000.0 * dt) : (23000.0 * log10(dt - 1.0) + 20000.0);
-			double vVal = (dt <= 2.0) ? (5.0 * dt) : (42.0 * log10(dt - 1.0) + 10.0);
-			double tVal = (dt <= 2.0) ? AMBIENT_TEMP : (900.0 * log10(dt - 1.0) + AMBIENT_TEMP);
+	case EngineState::STARTING: {
+		startPhaseElapsed += dt;  // ç´¯ç§¯æ—¶é—´
+		double t = startPhaseElapsed;
 
-			leftEngine.n1True = rightEngine.n1True = min(nVal, N1_MAX_RATED);
-			leftEngine.egtTrue = rightEngine.egtTrue = min(tVal, EGT_MAX);
-			fuelFlow = min(vVal, FUEL_FLOW_MAX);
-			break;
-		case EngineState::STABLE:
-			// ÔÚÎÈ¶¨×´Ì¬ÏÂ£¬ÒıÇæ²ÎÊıÎ§ÈÆ»ù×¼ÖµĞ¡·ù²¨¶¯
-			leftEngine.n1True = leftEngine.n1Base * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
-			leftEngine.egtTrue = leftEngine.egtBase * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
-			rightEngine.n1True = rightEngine.n1Base * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
-			rightEngine.egtTrue = rightEngine.egtBase * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
-			fuelFlow = min(fuelFlowBase * (1.0 + ((rand() % 601) / 10000.0) - 0.03), FUEL_FLOW_MAX);
-			break;
-		case EngineState::STOPPING:
-			// °´ÕÕÌâÄ¿ÒªÇóµÄ¶ÔÊıº¯Êı½øĞĞÀäÈ´¼°Í£Ö¹
-			double factor = (dt < 8.0) ? (1.0 - log10(dt + 1.0) / log10(9.0)) : 0.0;
-			leftEngine.n1True = leftEngine.n1Base * factor;
-			leftEngine.egtTrue = AMBIENT_TEMP + (leftEngine.egtBase - AMBIENT_TEMP) * factor;
-			rightEngine.n1True = rightEngine.n1Base * factor;
-			rightEngine.egtTrue = AMBIENT_TEMP + (rightEngine.egtBase - AMBIENT_TEMP) * factor;
-			break;
-		default:
-			break;
+		subState = (t <= 2.0) ? EngineSubState::LINEAR_START : EngineSubState::LOG_START;
+		double nVal = (t <= 2.0) ? (10000.0 * t) : (23000.0 * log10(t - 1.0) + 20000.0);
+		double vVal = (t <= 2.0) ? (5.0 * t) : (42.0 * log10(t - 1.0) + 10.0);
+		double tVal = (t <= 2.0) ? AMBIENT_TEMP : (900.0 * log10(t - 1.0) + AMBIENT_TEMP);
+
+		leftEngine.n1True = rightEngine.n1True = min(nVal, N1_MAX_RATED);
+		leftEngine.egtTrue = rightEngine.egtTrue = min(tVal, EGT_MAX);
+		fuelFlow = min(vVal, FUEL_FLOW_MAX);
+
+		//  çŠ¶æ€è½¬æ¢åˆ¤æ–­
+		if (leftEngine.n1True >= N1_STABLE_THRESHOLD && rightEngine.n1True >= N1_STABLE_THRESHOLD) {
+			state = EngineState::STABLE;
+			subState = EngineSubState::STABLE_RUN;
+			leftEngine.n1Base = leftEngine.n1True;
+			rightEngine.n1Base = rightEngine.n1True;
+			leftEngine.egtBase = leftEngine.egtTrue;
+			rightEngine.egtBase = rightEngine.egtTrue;
+			fuelFlowBase = fuelFlow;
+			cout << "[Engine] Reached stable state.\n";
+		}
+		break;
+	}
+	case EngineState::STABLE: {
+		leftEngine.n1True = leftEngine.n1Base * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
+		leftEngine.egtTrue = leftEngine.egtBase * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
+		rightEngine.n1True = rightEngine.n1Base * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
+		rightEngine.egtTrue = rightEngine.egtBase * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
+		fuelFlow = min(fuelFlowBase * (1.0 + ((rand() % 601) / 10000.0) - 0.03), FUEL_FLOW_MAX);
+		break;
+	}
+	case EngineState::STOPPING: {
+		stopPhaseElapsed += dt; 
+		double t = stopPhaseElapsed;
+
+		double factor = (t < 8.0) ? (1.0 - log10(t + 1.0) / log10(9.0)) : 0.0;
+		leftEngine.n1True = leftEngine.n1Base * factor;
+		leftEngine.egtTrue = AMBIENT_TEMP + (leftEngine.egtBase - AMBIENT_TEMP) * factor;
+		rightEngine.n1True = rightEngine.n1Base * factor;
+		rightEngine.egtTrue = AMBIENT_TEMP + (rightEngine.egtBase - AMBIENT_TEMP) * factor;
+
+		if (t >= 8.0 || (leftEngine.n1True <= 0.5 && rightEngine.n1True <= 0.5)) {
+			state = EngineState::OFF;
+			subState = EngineSubState::NONE;
+			leftEngine.n1True = rightEngine.n1True = 0.0;
+			leftEngine.egtTrue = rightEngine.egtTrue = AMBIENT_TEMP;
+			fuelFlow = 0.0;
+			cout << "[Engine] Engine fully stopped.\n";
+		}
+		break;
+	}
+	default:
+		break;
 	}
 
 	updateSensor(leftEngine);
 	updateSensor(rightEngine);
 
-	// Ä£ÄâÈ¼ÓÍÏûºÄ
+	// ç‡ƒæ²¹æ¶ˆè€—
 	if (!fuelReserveSensorInvalid) {
 		fuelReserve -= fuelFlow * dt;
 		if (fuelReserve <= 0) {
 			fuelReserve = 0;
 			if (state != EngineState::STOPPING && state != EngineState::OFF) {
-				std::cout << "[Engine] Fuel used-up. Shutting down engine.\n";
+				cout << "[Engine] Fuel used-up. Shutting down engine.\n";
 				stop();
 			}
 		}
 	}
 }
 
-// Ôö¼ÓÍÆÁ¦
+// å¢åŠ æ¨åŠ›
 void Engine::increaseThrust() {
 	if (state != EngineState::STABLE) {
 		return;
@@ -170,7 +197,7 @@ void Engine::increaseThrust() {
 	cout << "[Engine] Thrust increased.\n";
 }
 
-// ¼õÉÙÍÆÁ¦
+// å‡å°‘æ¨åŠ›
 void Engine::decreaseThrust() {
 	if (state != EngineState::STABLE) {
 		return;
@@ -185,27 +212,53 @@ void Engine::decreaseThrust() {
 }
 
 void Engine::updateSensor(SingleEngine& engine) {
-	// ¸üĞÂN1´«¸ĞÆ÷¶ÁÊı
+	// æ›´æ–°N1ä¼ æ„Ÿå™¨è¯»æ•°
 	for (int s = 0; s < 2; ++s) {
 		if (engine.n1SensorOverridden[s]) {
 			engine.n1Sensor[s] = engine.n1SensorOverrideVal[s];
 		}
 		else if (engine.n1SensorForcedAnomal[s]) {
-			// Ç¿ÖÆÒì³£Ê±£¬±£³ÖÉÏ´Î¶ÁÊı²»±ä
+			// å¼ºåˆ¶å¼‚å¸¸æ—¶ï¼Œä¿æŒä¸Šæ¬¡è¯»æ•°ä¸å˜
 		}
 		else if (engine.n1SensorAnomal[s]) {
-			// Òì³£Ê±£¬Êä³öNaN
 			engine.n1Sensor[s] = numeric_limits<double>::quiet_NaN();
 		}
 		else {
-			// Õı³£Çé¿öÏÂ£¬¶ÁÊıÎ§ÈÆÕæÊµÖµĞ¡·ù²¨¶¯
-			double noise = engine.n1True * (((rand() % 201) / 10000.0) - 0.01); // ¡À1%
+			double noise = engine.n1True * (((rand() % 201) / 10000.0) - 0.01);
 			engine.n1Sensor[s] = engine.n1True + noise;
+		}
+
+		// è‡ªåŠ¨æ›´æ–°å¼‚å¸¸æ ‡å¿—ï¼ˆå¦‚æœæ²¡æœ‰å¼ºåˆ¶å¼‚å¸¸ï¼‰
+		if (!engine.n1SensorForcedAnomal[s]) {
+			double percent = (engine.n1Sensor[s] / N1_MAX_RATED) * 100.0;
+			engine.n1SensorAnomal[s] = isnan(percent) || percent < 0.0 || percent > 125.0;
+		}
+	}
+
+	// æ›´æ–°EGTä¼ æ„Ÿå™¨è¯»æ•°
+	for (int s = 0; s < 2; ++s) {
+		if (engine.egtSensorOverridden[s]) {
+			engine.egtSensor[s] = engine.egtSensorOverrideVal[s];
+		}
+		else if (engine.egtSensorForcedAnomal[s]) {
+			// å¼ºåˆ¶å¼‚å¸¸æ—¶ï¼Œä¿æŒä¸Šæ¬¡è¯»æ•°ä¸å˜
+		}
+		else if (engine.egtSensorAnomal[s]) {
+			engine.egtSensor[s] = numeric_limits<double>::quiet_NaN();
+		}
+		else {
+			double noise = engine.egtTrue * (((rand() % 201) / 10000.0) - 0.01);
+			engine.egtSensor[s] = engine.egtTrue + noise;
+		}
+
+		// è‡ªåŠ¨æ›´æ–°å¼‚å¸¸æ ‡å¿—
+		if (!engine.egtSensorForcedAnomal[s]) {
+			engine.egtSensorAnomal[s] = isnan(engine.egtSensor[s]) ||
+				engine.egtSensor[s] < -5.0 || engine.egtSensor[s] > 1200.0;
 		}
 	}
 }
-
-// ÒÇ±íÏÔÊ¾º¯Êı£¬Á½¸ö¶¼Õı³£Ê±È¡Æ½¾ùÖµ£¬Ò»¸öÒì³£Ê±È¡ÁíÒ»¸ö£¬Á½¸ö¶¼Òì³£Ê±·µ»ØNaN
+// ä»ªè¡¨æ˜¾ç¤ºå‡½æ•°ï¼Œä¸¤ä¸ªéƒ½æ­£å¸¸æ—¶å–å¹³å‡å€¼ï¼Œä¸€ä¸ªå¼‚å¸¸æ—¶å–å¦ä¸€ä¸ªï¼Œä¸¤ä¸ªéƒ½å¼‚å¸¸æ—¶è¿”å›NaN
 double Engine::getDisplayedValue(const SingleEngine& engine, bool isN1) const {
 	double sum = 0.0;
 	int count = 0;
@@ -223,10 +276,10 @@ double Engine::getDisplayedValue(const SingleEngine& engine, bool isN1) const {
 	return (count > 0) ? (sum / count) : numeric_limits<double>::quiet_NaN();
 }
 
-// ½ö¹© UI / ÈÕÖ¾¶ÁÈ¡
+// ä»…ä¾› UI / æ—¥å¿—è¯»å–
 double Engine::getSimTime() const { return simElapsed; }
 
-// ´«¸ĞÆ÷ÓëÏÔÊ¾Öµ
+// ä¼ æ„Ÿå™¨ä¸æ˜¾ç¤ºå€¼
 double Engine::getN1Left() const {return getDisplayedValue(leftEngine, true);}
 double Engine::getN1Right() const {return getDisplayedValue(rightEngine, true);}
 double Engine::getEgtLeft() const {return getDisplayedValue(leftEngine, false);}
@@ -255,7 +308,7 @@ EngineSubState Engine::getSubState() const {return subState;}
 
 
 
-// ¿ØÖÆ½Ó¿Ú£¬ÓÃÓÚÖ¸ÁîĞĞ´«¸ĞÆ÷¸²¸ÇºÍÒì³£
+// æ§åˆ¶æ¥å£ï¼Œç”¨äºæŒ‡ä»¤è¡Œä¼ æ„Ÿå™¨è¦†ç›–å’Œå¼‚å¸¸
 double Engine::getSensorValue(int engine_id, int sensor_type, int sensor_id) const {
 	const SingleEngine& engine = (engine_id == 0) ? leftEngine : rightEngine;
 	if (sensor_type == 0) { // N1
@@ -305,7 +358,7 @@ bool Engine::isFuelFlowSensorInvalid() const { return fuelFlowSensorInvalid; }
 void Engine::setForcedFuelFlow(double value) { fuelFlow = value; fuelFlowOverridden = true; }
 void Engine::resetForcedFuelFlow() { fuelFlowOverridden = false; }
 
-// ÊÇ·ñÁ½¸ö´«¸ĞÆ÷¾ùÒì³£
+// æ˜¯å¦ä¸¤ä¸ªä¼ æ„Ÿå™¨å‡å¼‚å¸¸
 bool Engine::isN1SystemFault(int engine_id) const {
 	const SingleEngine& eng = (engine_id == 0) ? leftEngine : rightEngine;
 	return eng.n1SensorAnomal[0] && eng.n1SensorAnomal[1];
