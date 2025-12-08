@@ -4,46 +4,46 @@
 #include <sstream>
 #include <graphics.h>
 using namespace std;
+#define pi 3.14159265358979323846
 
 Gauge::Gauge(POINT center, int radius, const std::string& label, double maxVal)
 	: center(center), radius(radius), label(label), maxVal(maxVal) {
 };
 
 double Gauge::valueToAngle(double value) const {
+	// 将输入值归一化到 0.0 到 1.0 之间
 	double percentage = value / maxVal;
-	return 180 * percentage;
+	if (percentage < 0) percentage = 0;
+
+	// 将百分比映射到 0 到 210 度的角度范围
+	return - 180.0 * percentage / 180 * pi;
 }
 
 
 void Gauge::draw(double value, double baseValue, double cautionStart, double warningStart) const {
 	POINT Gaugecenter = center;
 	int GaugeRadius = radius;
-	int thickness = 1;
-	
 
-	// 先画一个空心的扇形（0-225°）
+	// 1. 绘制仪表背景 (从 210° 到 0° 的空心扇形) 要转化弧度制
 	setlinecolor(COLOR_WHITE);
 	setfillcolor(COLOR_BLACK);
-	fillpie(Gaugecenter.x - GaugeRadius, Gaugecenter.y - GaugeRadius,
+	pie(Gaugecenter.x - GaugeRadius, Gaugecenter.y - GaugeRadius,
 		Gaugecenter.x + GaugeRadius, Gaugecenter.y + GaugeRadius,
-		0, 225);
+		double(160) / 180 * pi , 0);
 
 	if (isnan(value)) {
-		// 0°半径数显框里写NaN
+		// 在数字读数位置绘制 "NaN"
 		setfillcolor(COLOR_BLACK);
-		solidrectangle(Gaugecenter.x + radius, Gaugecenter.y - radius * 0.2,
-			Gaugecenter.x + radius * 0.4, Gaugecenter.y);
+		solidrectangle(Gaugecenter.x + radius * 0.4, Gaugecenter.y - radius * 0.2,
+			Gaugecenter.x + radius * 1.0, Gaugecenter.y);
 		settextcolor(COLOR_RED);
 		setbkmode(TRANSPARENT);
 		settextstyle(20, 0, _T("Consolas"));
 		outtextxy(Gaugecenter.x + radius * 0.42, Gaugecenter.y - radius * 0.15, L"NaN");
 	}
 	else {
-		solidrectangle(Gaugecenter.x + radius, Gaugecenter.y - radius * 0.2,
-			Gaugecenter.x + radius * 0.4, Gaugecenter.y);
-		double currentAngle = valueToAngle(value);
-		COLORREF currentColor = COLOR_GREY;
-		// 根据数值设定颜色
+		// 2. 根据数值设定颜色
+		COLORREF currentColor = COLOR_LIGHT_GREY; // 默认白色
 		if (value >= warningStart) {
 			currentColor = COLOR_RED;
 		}
@@ -51,16 +51,19 @@ void Gauge::draw(double value, double baseValue, double cautionStart, double war
 			currentColor = COLOR_AMBER;
 		}
 
-		setlinecolor(currentColor);
-		setfillcolor(currentColor);
-		fillpie(Gaugecenter.x - GaugeRadius * 0.9, Gaugecenter.y - GaugeRadius * 0.9,
-			Gaugecenter.x + GaugeRadius * 0.9, Gaugecenter.y + GaugeRadius * 0.9,
-			0, currentAngle);
+		// 3. 绘制代表当前值的实心扇形
+		double fillAngle = valueToAngle(value);
 
-		// 写数字
-		setfillcolor(COLOR_BLACK);
-		solidrectangle(Gaugecenter.x + radius, Gaugecenter.y - radius * 0.2,
-			Gaugecenter.x + radius * 0.4, Gaugecenter.y);
+		if (fillAngle != 0) {
+			setlinecolor(currentColor);
+			setfillcolor(currentColor);
+
+			solidpie(Gaugecenter.x - GaugeRadius * 0.9, Gaugecenter.y - GaugeRadius * 0.9,
+				Gaugecenter.x + GaugeRadius * 0.95, Gaugecenter.y + GaugeRadius * 0.9,
+				fillAngle, 0);
+		}
+
+		// 4. 绘制数字读数
 		settextcolor(currentColor);
 		setbkmode(TRANSPARENT);
 		settextstyle(20, 0, _T("Consolas"));
@@ -68,27 +71,24 @@ void Gauge::draw(double value, double baseValue, double cautionStart, double war
 
 		if (label.find("N1") != string::npos) {
 			displayValue = (value / 40000.0) * 100.0; // N1显示百分比
-
-			// 保留 1 位小数的 wstring
 			wostringstream wss;
 			wss << fixed << setprecision(1) << displayValue;
 			wstring valStr = wss.str();
-
-			outtextxy(Gaugecenter.x + radius * 0.42, Gaugecenter.y - radius * 0.15, valStr.c_str());
+			outtextxy(Gaugecenter.x + radius * 0.42, Gaugecenter.y - radius * 0.3, valStr.c_str());
 		}
 		else {
-			// 保留到整数
 			wostringstream wss;
 			wss << fixed << setprecision(0) << displayValue;
 			wstring valStr = wss.str();
-			outtextxy(Gaugecenter.x + radius * 0.42, Gaugecenter.y - radius * 0.15, valStr.c_str());
+			outtextxy(Gaugecenter.x + radius * 0.42, Gaugecenter.y - radius * 0.3, valStr.c_str());
 		}
 	}
-	// 仪表标签
+	// 5. 绘制仪表标签
 	settextcolor(COLOR_WHITE);
 	settextstyle(20, 0, _T("Consolas"));
-	outtextxy(Gaugecenter.x - radius * 0.3, Gaugecenter.y - radius * 0.3, wstring(label.begin(), label.end()).c_str());
+	outtextxy(Gaugecenter.x - radius * 0.2, Gaugecenter.y - radius * 0.7, wstring(label.begin(), label.end()).c_str());
 }
+
 
 Indicator::Indicator(const RECT& position, const std::string& text)
 	: pos(position), label(text), isActive(false), color(COLOR_GREY), lastActivatedTime(0.0) {}
