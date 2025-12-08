@@ -190,8 +190,8 @@ void Engine::increaseThrust() {
 	}
 	fuelFlowBase = min(fuelFlowBase + 1.0, FUEL_FLOW_MAX);
 	double increase = 0.03 + (rand() % 21) / 1000.0; // 3% - 5%
-	leftEngine.n1Base = min(leftEngine.n1Base * (1.0 + increase), N1_MAX_RATED);
-	rightEngine.n1Base = min(rightEngine.n1Base * (1.0 + increase), N1_MAX_RATED);
+	leftEngine.n1Base = min(leftEngine.n1Base * (1.0 + increase), N1_MAX);
+	rightEngine.n1Base = min(rightEngine.n1Base * (1.0 + increase), N1_MAX);
 	leftEngine.egtBase = min(leftEngine.egtBase * (1.0 + increase), EGT_MAX);
 	rightEngine.egtBase = min(rightEngine.egtBase * (1.0 + increase), EGT_MAX);
 	cout << "[Engine] Thrust increased.\n";
@@ -210,7 +210,6 @@ void Engine::decreaseThrust() {
 	rightEngine.egtBase = max(rightEngine.egtBase * (1.0 - decrease), AMBIENT_TEMP);
 	cout << "[Engine] Thrust decreased.\n";
 }
-
 void Engine::updateSensor(SingleEngine& engine) {
 	// 更新N1传感器读数
 	for (int s = 0; s < 2; ++s) {
@@ -224,7 +223,7 @@ void Engine::updateSensor(SingleEngine& engine) {
 			engine.n1Sensor[s] = numeric_limits<double>::quiet_NaN();
 		}
 		else {
-			double noise = engine.n1True * (((rand() % 201) / 10000.0) - 0.01);
+			double noise = engine.n1True * (((rand() % 101) / 10000.0) - 0.01);
 			engine.n1Sensor[s] = engine.n1True + noise;
 		}
 
