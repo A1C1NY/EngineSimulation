@@ -364,3 +364,4 @@ FodyWeavers.xsd
 /EngineSimulation/vcpkg_installed
 /EngineSimulation/test.png
 /EngineSimulation/constants.h
+*.csv
