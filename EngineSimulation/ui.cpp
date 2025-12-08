@@ -197,11 +197,25 @@ double AlertInfo::getCurrentTime() const {
 }
 
 void AlertInfo::triggerAlert(const string& message, COLORREF color) {
+	if (message.empty()) return;  // 直接跳过空消息
+
 	double currentTime = getCurrentTime();
-	alertHistory.push_back({ message, color, currentTime});
+
+	// 检查是否已存在相同消息（5秒内）
+	bool found = false;
+	for (const auto& alert : alertHistory) {
+		if (alert.message == message && currentTime - alert.timestamp < 5.0) {
+			found = true;
+			break;
+		}
+	}
+
+	// 只在未找到时添加
+	if (!found) {
+		alertHistory.push_back({ message, color, currentTime });
+	}
 
 	// 按照Red > Amber > White优先级更新当前警报
-	// 只有新警报颜色优先级更高时才更新当前警报
 	bool higherPriority = false;
 	if (currentAlert.message.empty()) {
 		higherPriority = true;
@@ -212,58 +226,52 @@ void AlertInfo::triggerAlert(const string& message, COLORREF color) {
 	else if (color == COLOR_AMBER && currentAlert.color == COLOR_WHITE) {
 		higherPriority = true;
 	}
-	else if (color == COLOR_WHITE && currentAlert.color == COLOR_BLACK) {
-		higherPriority = true; // WHITE对于无警报是更高优先级
-	}
 
-	// 如果优先级更高，或等级相同但是新警报，则更新当前警报
 	if (higherPriority || (color == currentAlert.color && message != currentAlert.message)) {
 		currentAlert.message = message;
 		currentAlert.color = color;
 		currentAlert.timestamp = currentTime;
 	}
 	else {
-		// 否则只更新当前警报的最后时间
 		currentAlert.timestamp = currentTime;
-	}
-
-	if (!message.empty()) {
-		bool found = false;
-		for (const auto& alert : alertHistory) {
-			if (alert.message == message && currentTime - alert.timestamp < 5.0) {
-				found = true;
-				break;
-			}
-		}
-		if (!found) {
-			alertHistory.push_back({ message, color, currentTime});
-		}
 	}
 }
 
 void AlertInfo::update() {
 	double currentTime = getCurrentTime();
+
 	// 如果当前警报存在且超过5秒未更新，则清除
 	if (!currentAlert.message.empty() && (currentTime - currentAlert.timestamp >= 5.0)) {
 		currentAlert = { "", COLOR_BLACK, 0.0 };
 	}
-	// 清理历史警报
-	while (!alertHistory.empty() && currentTime - currentAlert.timestamp >= 5.0) {
+
+	// 清理历史警报（修复：应该检查单个alert的时间戳）
+	while (!alertHistory.empty() && (currentTime - alertHistory.front().timestamp >= 5.0)) {
 		alertHistory.pop_front();
 	}
 }
 
 void AlertInfo::drawHistory() const {
-	int baseY = WINDOW_HEIGHT - 150;
+	int baseY = WINDOW_HEIGHT - 100;  // 改为显示在更上面的位置
 	int lineHeight = 20;
-	int maxLines = 8;
+	int maxLines = 4;
 	int cnt = 0;
+
+	// 绘制警报历史背景框（可选但建议）
+	setlinecolor(COLOR_GREY);
+	rectangle(30, baseY - 25, WINDOW_WIDTH - 30, baseY + maxLines * lineHeight);
+
+	// 绘制标题
+	settextcolor(COLOR_WHITE);
+	setbkmode(TRANSPARENT);
+	settextstyle(16, 0, _T("Consolas"));
+	outtextxy(35, baseY - 22, L"Alert History:");
+
+	// 绘制警报信息
 	for (auto it = alertHistory.begin(); it != alertHistory.end() && cnt < maxLines; ++it, ++cnt) {
 		const Alert& alert = *it;
 		int x = 50;
 		int y = baseY + cnt * lineHeight;
-		int w = WINDOW_WIDTH - 100;
-		int h = lineHeight - 4;
 
 		settextcolor(alert.color);
 		setbkmode(TRANSPARENT);
@@ -273,7 +281,6 @@ void AlertInfo::drawHistory() const {
 		outtextxy(x + 8, y + 2, wmsg.c_str());
 	}
 }
-
 
 void initializeIndicators(map<string, Indicator>& indicators) {
 	// map<string, Indicator>直接用string找到对应的Indicator

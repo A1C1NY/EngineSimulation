@@ -140,7 +140,9 @@ void Engine::advance(double dt) {
 		leftEngine.egtTrue = leftEngine.egtBase * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
 		rightEngine.n1True = rightEngine.n1Base * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
 		rightEngine.egtTrue = rightEngine.egtBase * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
-		fuelFlow = min(fuelFlowBase * (1.0 + ((rand() % 601) / 10000.0) - 0.03), FUEL_FLOW_MAX);
+		if (!fuelFlowOverridden) {
+			fuelFlow = min(fuelFlowBase * (1.0 + ((rand() % 601) / 10000.0) - 0.03), FUEL_FLOW_MAX);
+		}
 		break;
 	}
 	case EngineState::STOPPING: {
@@ -355,7 +357,16 @@ bool Engine::isFuelReserveSensorInvalid() const { return fuelReserveSensorInvali
 void Engine::setFuelFlowSensorInvalid(bool invalid) { fuelFlowSensorInvalid = invalid; }
 bool Engine::isFuelFlowSensorInvalid() const { return fuelFlowSensorInvalid; }
 void Engine::setForcedFuelFlow(double value) { fuelFlow = value; fuelFlowOverridden = true; }
-void Engine::resetForcedFuelFlow() { fuelFlowOverridden = false; }
+void Engine::resetForcedFuelFlow() {
+	fuelFlowOverridden = false;
+	// 恢复为当前基准值，下一帧会正常计算
+	if (state == EngineState::STABLE && fuelFlowBase > 0) {
+		fuelFlow = fuelFlowBase;
+	}
+	else if (state == EngineState::OFF || state == EngineState::STOPPING) {
+		fuelFlow = 0.0;
+	}
+}
 
 // 是否两个传感器均异常
 bool Engine::isN1SystemFault(int engine_id) const {
