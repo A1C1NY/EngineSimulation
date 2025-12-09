@@ -27,9 +27,9 @@ void Gauge::draw(double value, double baseValue, double cautionStart, double war
 	// 1. 绘制仪表背景 (从 210° 到 0° 的空心扇形) 要转化弧度制
 	setlinecolor(COLOR_WHITE);
 	setfillcolor(COLOR_BLACK);
-	pie(Gaugecenter.x - GaugeRadius, Gaugecenter.y - GaugeRadius,
-		Gaugecenter.x + GaugeRadius, Gaugecenter.y + GaugeRadius,
-		double(160) / 180 * pi , 0);
+	pie(Gaugecenter.x - GaugeRadius * 0.96, Gaugecenter.y - GaugeRadius * 1.05,
+		Gaugecenter.x + GaugeRadius * 1.04, Gaugecenter.y + GaugeRadius, // 稍微偏一些看起来效果更好
+		double(140) / 180 * pi , 0);
 
 	if (isnan(value)) {
 		// 在数字读数位置绘制 "NaN"
@@ -343,10 +343,34 @@ void handleMouseClick(int x, int y, void* enginePtr, void* startFlagPtr, void* s
 	}
 }
 
+void fixConsoleWindow() {
+	HWND consoleWindow = GetConsoleWindow();
+	HWND graphicsWindow = GetHWnd();
+
+	if (consoleWindow != NULL && graphicsWindow != NULL) {
+		RECT graphicsRect;
+		GetWindowRect(graphicsWindow, &graphicsRect);
+		int graphicsWidth = graphicsRect.right - graphicsRect.left;
+		int graphicsHeight = graphicsRect.bottom - graphicsRect.top;
+
+		int consoleWidth = 500;
+		int consoleHeight = graphicsHeight;
+
+		// 将控制台窗口放置在图形窗口的右侧，并设置其大小
+		SetWindowPos(consoleWindow, NULL, graphicsRect.left + graphicsWidth, graphicsRect.top, consoleWidth, consoleHeight, SWP_NOZORDER);
+	}
+}
+
 void initializeUI(const string& windowName, void* enginePtr, void* startFlagPtr, void* stopFlagPtr, void* thrustButtonsPtr) {
 	// EasyX Initialization
 	initgraph(WINDOW_WIDTH, WINDOW_HEIGHT, EW_SHOWCONSOLE); // EW_SHOWCONSOLE keeps the console window open
+
+	HWND graphicsWindow = GetHWnd();
+	if (graphicsWindow != NULL) {
+		SetWindowPos(graphicsWindow, NULL, 10, 10, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+	}
 	setbkcolor(BLACK);
+	fixConsoleWindow();
 	cleardevice();
 }
 

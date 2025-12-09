@@ -6,8 +6,9 @@
 #include <chrono>
 #include <deque>
 #include <graphics.h>
+#include <Windows.h>
 
-const int WINDOW_WIDTH = 600;
+const int WINDOW_WIDTH = 1000;
 const int WINDOW_HEIGHT = 700;
 
 const COLORREF COLOR_WHITE = RGB(255, 255, 255);
@@ -91,3 +92,4 @@ void initializeIndicators(std::map<std::string, Indicator>& indicators);
 void initializeButtons(std::map<std::string, TriangleButton>& thrustButtons);
 void handleMouseClick(int x, int y, void* enginePtr, void* startFlagPtr, void* stopFlagPtr, void* thrustButtonsPtr);
 void initializeUI(const std::string& windowName, void* enginePtr, void* startFlagPtr, void* stopFlagPtr, void* thrustButtonsPtr);
+void fixConsoleWindow();

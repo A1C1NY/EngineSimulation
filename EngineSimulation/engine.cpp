@@ -218,15 +218,28 @@ void Engine::updateSensor(SingleEngine& engine) {
 		if (engine.n1SensorOverridden[s]) {
 			engine.n1Sensor[s] = engine.n1SensorOverrideVal[s];
 		}
-		else if (engine.n1SensorForcedAnomal[s]) {
-			// 强制异常时，保持上次读数不变
+		else {
+			if (std::isnan(engine.n1True)) {
+				engine.n1Sensor[s] = std::numeric_limits<double>::quiet_NaN();
+			}
+			else {
+				double noise = engine.n1True * (((rand() % 11) / 10000.0) - 0.005);
+				engine.n1Sensor[s] = engine.n1True + noise;
+			}
 		}
-		else if (engine.n1SensorAnomal[s]) {
-			engine.n1Sensor[s] = numeric_limits<double>::quiet_NaN();
+
+		// 更新EGT传感器读数
+		if (engine.egtSensorOverridden[s]) {
+			engine.egtSensor[s] = engine.egtSensorOverrideVal[s];
 		}
 		else {
-			double noise = engine.n1True * (((rand() % 101) / 10000.0) - 0.01);
-			engine.n1Sensor[s] = engine.n1True + noise;
+			if (std::isnan(engine.egtTrue)) {
+				engine.egtSensor[s] = std::numeric_limits<double>::quiet_NaN();
+			}
+			else {
+				double noise = engine.egtTrue * (((rand() % 11) / 10000.0) - 0.01);
+				engine.egtSensor[s] = engine.egtTrue + noise;
+			}
 		}
 
 		// 自动更新异常标志（如果没有强制异常）
@@ -234,25 +247,7 @@ void Engine::updateSensor(SingleEngine& engine) {
 			double percent = (engine.n1Sensor[s] / N1_MAX_RATED) * 100.0;
 			engine.n1SensorAnomal[s] = isnan(percent) || percent < 0.0 || percent > 125.0;
 		}
-	}
 
-	// 更新EGT传感器读数
-	for (int s = 0; s < 2; ++s) {
-		if (engine.egtSensorOverridden[s]) {
-			engine.egtSensor[s] = engine.egtSensorOverrideVal[s];
-		}
-		else if (engine.egtSensorForcedAnomal[s]) {
-			// 强制异常时，保持上次读数不变
-		}
-		else if (engine.egtSensorAnomal[s]) {
-			engine.egtSensor[s] = numeric_limits<double>::quiet_NaN();
-		}
-		else {
-			double noise = engine.egtTrue * (((rand() % 201) / 10000.0) - 0.01);
-			engine.egtSensor[s] = engine.egtTrue + noise;
-		}
-
-		// 自动更新异常标志
 		if (!engine.egtSensorForcedAnomal[s]) {
 			engine.egtSensorAnomal[s] = isnan(engine.egtSensor[s]) ||
 				engine.egtSensor[s] < -5.0 || engine.egtSensor[s] > 1200.0;
