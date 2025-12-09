@@ -28,25 +28,25 @@ void drawGauges(const vector<Gauge>& gauges, const Engine& engine) {
 }
 
 void drawButtons(const Engine& engine, const map<string, TriangleButton>& thrust_buttons) {
-    RECT start_rect = { 810, 90, 900, 120 };
+    RECT start_rect = { 820, 50, 950, 110 };
     COLORREF start_color = (engine.getState() == EngineState::OFF) ? COLOR_GREEN : COLOR_GREY;
     setfillcolor(start_color);
     solidrectangle(start_rect.left, start_rect.top, start_rect.right, start_rect.bottom);
 
     settextcolor(COLOR_BLACK);
-    settextstyle(14, 0, L"Arial");
+    settextstyle(18, 0, L"Arial");
     setbkmode(TRANSPARENT);
-    outtextxy(start_rect.left + 5, start_rect.top + 3, L"START");
+    outtextxy(start_rect.left + 30, start_rect.top + 10, L"START");
 
-    RECT stop_rect = { 810, 130, 900, 160 };
+    RECT stop_rect = { 820, 120, 950, 180 };
     COLORREF stop_color = (engine.getState() == EngineState::STABLE || engine.getState() == EngineState::STARTING) ? COLOR_RED : COLOR_GREY;
     setfillcolor(stop_color);
     solidrectangle(stop_rect.left, stop_rect.top, stop_rect.right, stop_rect.bottom);
 
     settextcolor(COLOR_WHITE);
-    settextstyle(14, 0, L"Arial");
+    settextstyle(18, 0, L"Arial");
     setbkmode(TRANSPARENT);
-    outtextxy(stop_rect.left + 7, stop_rect.top + 3, L"STOP");
+    outtextxy(stop_rect.left + 35, stop_rect.top + 12, L"STOP");
 
     // 绘制推力按钮
     if (thrust_buttons.count("ThrustUp") && thrust_buttons.count("ThrustDown")) {

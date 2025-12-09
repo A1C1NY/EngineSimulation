@@ -332,17 +332,17 @@ void initializeIndicators(map<string, Indicator>& indicators) {
 
 void initializeButtons(std::map<std::string, TriangleButton>& thrustButtons) {
 	thrustButtons.clear();
-	thrustButtons.emplace("ThrustUp", TriangleButton({ 770, 90, 800, 120 }, true)); // Up
-	thrustButtons.emplace("ThrustDown", TriangleButton({ 770, 130, 800, 160 }, false)); // Down
+	thrustButtons.emplace("ThrustUp", TriangleButton({ 770, 80, 800, 110 }, true)); // Up
+	thrustButtons.emplace("ThrustDown", TriangleButton({ 770, 120, 800, 150 }, false)); // Down
 }
 
 void handleMouseClick(int x, int y, void* enginePtr, void* startFlagPtr, void* stopFlagPtr, void* thrustButtonsPtr) {
-	if (x >= 810 && x <= 900 && y >= 90 && y <= 120) {
+	if (x >= 820 && x <= 950 && y >= 50 && y <= 110) {
 		if (startFlagPtr) {
 			*(bool*)startFlagPtr = true;
 		}
 	}
-	else if (x >= 810 && x <= 900 && y >= 130 && y <= 160) {
+	else if (x >= 820 && x <= 950 && y >= 120 && y <= 180) {
 		if (stopFlagPtr) {
 			*(bool*)stopFlagPtr = true;
 		}
