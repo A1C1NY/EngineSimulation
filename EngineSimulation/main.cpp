@@ -264,10 +264,9 @@ int main() {
     EndBatchDraw();
     closegraph(); // 关闭窗口
 
+    cmdThreadRunning = false;
     if (cmdThread.joinable()) {
-        cmdThreadRunning = false;
-        // 为了确保线程能退出，需要发送一个空命令或等待
-        cmdThread.join();
+        cmdThread.detach();  // ← 让线程自行终止，不等待
     }
 
     if (logging) {
