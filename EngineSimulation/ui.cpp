@@ -324,10 +324,10 @@ void initializeIndicators(map<string, Indicator>& indicators) {
 	indicators.emplace("FuelFlowFail", Indicator({ xStart + 3 * xOffset, yStart + 3 * yOffset, xStart + 3 * xOffset + w, yStart + 3 * yOffset + h }, "Fuel Flow Fail"));
 
 	// 第 5 行: EGT 超温警告
-	indicators.emplace("OverTemp1", Indicator({ xStart, yStart + 4 * yOffset, xStart + w, yStart + 4 * yOffset + h }, "OverTemp S1"));
-	indicators.emplace("OverTemp2", Indicator({ xStart + xOffset, yStart + 4 * yOffset, xStart + xOffset + w, yStart + 4 * yOffset + h }, "OverTemp S2"));
-	indicators.emplace("OverTemp3", Indicator({ xStart + 2 * xOffset, yStart + 4 * yOffset, xStart + 2 * xOffset + w, yStart + 4 * yOffset + h }, "OverTemp C1"));
-	indicators.emplace("OverTemp4", Indicator({ xStart + 3 * xOffset, yStart + 4 * yOffset, xStart + 3 * xOffset + w, yStart + 4 * yOffset + h }, "OverTemp C2"));
+	indicators.emplace("OverTemp1", Indicator({ xStart, yStart + 4 * yOffset, xStart + w, yStart + 4 * yOffset + h }, "OverTemp1"));
+	indicators.emplace("OverTemp2", Indicator({ xStart + xOffset, yStart + 4 * yOffset, xStart + xOffset + w, yStart + 4 * yOffset + h }, "OverTemp2"));
+	indicators.emplace("OverTemp3", Indicator({ xStart + 2 * xOffset, yStart + 4 * yOffset, xStart + 2 * xOffset + w, yStart + 4 * yOffset + h }, "OverTemp3"));
+	indicators.emplace("OverTemp4", Indicator({ xStart + 3 * xOffset, yStart + 4 * yOffset, xStart + 3 * xOffset + w, yStart + 4 * yOffset + h }, "OverTemp4"));
 }
 
 void initializeButtons(std::map<std::string, TriangleButton>& thrustButtons) {

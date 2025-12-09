@@ -30,7 +30,7 @@ bool isLogging = false;
 
 
 static void updateIndicators(Engine& engine, map<string, Indicator>& indicators) {
-	// 更新各个指示灯时间状态
+    // 更新各个指示灯时间状态
     for (auto& pair : indicators) {
         // 不让 Start 和 Run 指示灯自动熄灭
         if (pair.first != "Start" && pair.first != "Run") {
@@ -38,9 +38,9 @@ static void updateIndicators(Engine& engine, map<string, Indicator>& indicators)
         }
     }
 
-	// 获取发动机状态
-	EngineState state = engine.getState();
-	EngineSubState subState = engine.getSubState();
+    // 获取发动机状态
+    EngineState state = engine.getState();
+    EngineSubState subState = engine.getSubState();
 
     // 控制 Start 和 Run 指示灯
     if (state == EngineState::STARTING) {
@@ -62,46 +62,63 @@ static void updateIndicators(Engine& engine, map<string, Indicator>& indicators)
         indicators.at("Run").deactivate();
     }
 
-    std::string highest_alert_msg;
-    COLORREF highest_alert_color = COLOR_BLACK;
-	// 按照优先级设置警报函数
-    auto set_alert = [&](const std::string& msg, const COLORREF color) {
-        if (msg.empty()) return;
-        if (color == COLOR_RED ||
-            (color == COLOR_AMBER && highest_alert_color != COLOR_RED) ||
-            (color == COLOR_WHITE && highest_alert_color != COLOR_RED && highest_alert_color != COLOR_AMBER)) {
-            highest_alert_msg = msg;
-            highest_alert_color = color;
+    // 修改：直接触发所有警报，而不是只保留最高优先级
+    auto trigger_alert = [&](const std::string& msg, const COLORREF color) {
+        if (!msg.empty()) {
+            alertInfo.triggerAlert(msg, color);
         }
     };
 
     // 更换颜色
-    if (engine.isN1SensorAnomal(0, 0)) { indicators.at("N1_L_S1_Fail").setActive(COLOR_WHITE); set_alert("N1 SENSOR 1 LEFT ANOMALY", COLOR_WHITE); }
-	if (engine.isN1SensorAnomal(0, 1)) { indicators.at("N1_L_S2_Fail").setActive(COLOR_WHITE); set_alert("N1 SENSOR 2 LEFT ANOMALY", COLOR_WHITE); }
-	if (engine.isEGTSensorAnomal(0, 0)) { indicators.at("EGT_L_S1_Fail").setActive(COLOR_WHITE); set_alert("EGT SENSOR 1 LEFT ANOMALY", COLOR_WHITE); }
-	if (engine.isEGTSensorAnomal(0, 1)) { indicators.at("EGT_L_S2_Fail").setActive(COLOR_WHITE); set_alert("EGT SENSOR 2 LEFT ANOMALY", COLOR_WHITE); }
-	if (engine.isFuelReserveSensorInvalid()) { indicators.at("FuelResFail").setActive(COLOR_WHITE); set_alert("FUEL RESERVE SENSOR INVALID", COLOR_WHITE); }
-	if (engine.isN1SensorAnomal(1, 0)) { indicators.at("N1_R_S1_Fail").setActive(COLOR_WHITE); set_alert("N1 SENSOR 1 RIGHT ANOMALY", COLOR_WHITE); }
-	if (engine.isN1SensorAnomal(1, 1)) { indicators.at("N1_R_S2_Fail").setActive(COLOR_WHITE); set_alert("N1 SENSOR 2 RIGHT ANOMALY", COLOR_WHITE); }
-	if (engine.isEGTSensorAnomal(1, 0)) { indicators.at("EGT_R_S1_Fail").setActive(COLOR_WHITE); set_alert("EGT SENSOR 1 RIGHT ANOMALY", COLOR_WHITE); }
-	if (engine.isEGTSensorAnomal(1, 1)) { indicators.at("EGT_R_S2_Fail").setActive(COLOR_WHITE); set_alert("EGT SENSOR 2 RIGHT ANOMALY", COLOR_WHITE); }
+    if (engine.isN1SensorAnomal(0, 0)) {
+        indicators.at("N1_L_S1_Fail").setActive(COLOR_WHITE);
+        trigger_alert("N1 SENSOR 1 LEFT ANOMALY", COLOR_WHITE);
+    }
+    if (engine.isN1SensorAnomal(0, 1)) {
+        indicators.at("N1_L_S2_Fail").setActive(COLOR_WHITE);
+        trigger_alert("N1 SENSOR 2 LEFT ANOMALY", COLOR_WHITE);
+    }
+    if (engine.isEGTSensorAnomal(0, 0)) {
+        indicators.at("EGT_L_S1_Fail").setActive(COLOR_WHITE);
+        trigger_alert("EGT SENSOR 1 LEFT ANOMALY", COLOR_WHITE);
+    }
+    if (engine.isEGTSensorAnomal(0, 1)) {
+        indicators.at("EGT_L_S2_Fail").setActive(COLOR_WHITE);
+        trigger_alert("EGT SENSOR 2 LEFT ANOMALY", COLOR_WHITE);
+    }
+    if (engine.isN1SensorAnomal(1, 0)) {
+        indicators.at("N1_R_S1_Fail").setActive(COLOR_WHITE);
+        trigger_alert("N1 SENSOR 1 RIGHT ANOMALY", COLOR_WHITE);
+    }
+    if (engine.isN1SensorAnomal(1, 1)) {
+        indicators.at("N1_R_S2_Fail").setActive(COLOR_WHITE);
+        trigger_alert("N1 SENSOR 2 RIGHT ANOMALY", COLOR_WHITE);
+    }
+    if (engine.isEGTSensorAnomal(1, 0)) {
+        indicators.at("EGT_R_S1_Fail").setActive(COLOR_WHITE);
+        trigger_alert("EGT SENSOR 1 RIGHT ANOMALY", COLOR_WHITE);
+    }
+    if (engine.isEGTSensorAnomal(1, 1)) {
+        indicators.at("EGT_R_S2_Fail").setActive(COLOR_WHITE);
+        trigger_alert("EGT SENSOR 2 RIGHT ANOMALY", COLOR_WHITE);
+    }
 
     if (engine.isN1SystemFault(0) || engine.isN1SystemFault(1)) {
         indicators.at("N1SFail").setActive(COLOR_AMBER);
-        set_alert("N1 SYSTEM FAULT", COLOR_AMBER);
+        trigger_alert("N1 SYSTEM FAULT", COLOR_AMBER);
     }
     if (engine.isEGTSystemFault(0) || engine.isEGTSystemFault(1)) {
         indicators.at("EGTSFail").setActive(COLOR_AMBER);
-        set_alert("EGT SYSTEM FAULT", COLOR_AMBER);
+        trigger_alert("EGT SYSTEM FAULT", COLOR_AMBER);
     }
     if (engine.isN1SystemFault(0) && engine.isN1SystemFault(1)) {
         indicators.at("N1SFail").setActive(COLOR_RED);
-        set_alert("DUAL N1 SYSTEM FAILURE - SHUTDOWN", COLOR_RED);
+        trigger_alert("DUAL N1 SYSTEM FAILURE - SHUTDOWN", COLOR_RED);
         if (state != EngineState::STOPPING && state != EngineState::OFF) engine.stop();
     }
     if (engine.isEGTSystemFault(0) && engine.isEGTSystemFault(1)) {
         indicators.at("EGTSFail").setActive(COLOR_RED);
-        set_alert("DUAL EGT SYSTEM FAILURE - SHUTDOWN", COLOR_RED);
+        trigger_alert("DUAL EGT SYSTEM FAILURE - SHUTDOWN", COLOR_RED);
         if (state != EngineState::STOPPING && state != EngineState::OFF) engine.stop();
     }
 
@@ -110,25 +127,25 @@ static void updateIndicators(Engine& engine, map<string, Indicator>& indicators)
     double fuelFlow = engine.getFuelFlow();
     if (engine.isFuelReserveSensorInvalid()) {
         indicators.at("FuelResFail").setActive(COLOR_RED);
-        set_alert("FUEL RESERVE SENSOR INVALID", COLOR_RED);
+        trigger_alert("FUEL RESERVE SENSOR INVALID", COLOR_RED);
     }
     else if (!std::isnan(fuelRes)) {
         if (fuelRes <= 0.0 && state != EngineState::OFF) {
             indicators.at("LowFuel").setActive(COLOR_RED);
-            set_alert("FUEL DEPLETED - ENGINE SHUTDOWN", COLOR_RED);
+            trigger_alert("FUEL DEPLETED - ENGINE SHUTDOWN", COLOR_RED);
         }
         else if (fuelRes < 1000.0 && state != EngineState::OFF) {
             indicators.at("LowFuel").setActive(COLOR_AMBER);
-            set_alert("LOW FUEL RESERVE", COLOR_AMBER);
+            trigger_alert("LOW FUEL RESERVE", COLOR_AMBER);
         }
     }
     if (engine.isFuelFlowSensorInvalid()) {
         indicators.at("FuelFlowFail").setActive(COLOR_AMBER);
-        set_alert("FUEL FLOW SENSOR INVALID", COLOR_AMBER);
+        trigger_alert("FUEL FLOW SENSOR INVALID", COLOR_AMBER);
     }
     else if (!std::isnan(fuelFlow) && fuelFlow > FUEL_FLOW_MAX) {
         indicators.at("OverFF").setActive(COLOR_AMBER);
-        set_alert("FUEL FLOW EXCEEDED LIMIT", COLOR_AMBER);
+        trigger_alert("FUEL FLOW EXCEEDED LIMIT", COLOR_AMBER);
     }
 
     double n1L_pct = engine.getN1LeftPercentage();
@@ -136,23 +153,23 @@ static void updateIndicators(Engine& engine, map<string, Indicator>& indicators)
     if (!std::isnan(n1L_pct)) {
         if (n1L_pct > 120.0) {
             indicators.at("OverSpd1").setActive(COLOR_RED);
-            set_alert("N1 LEFT OVERSPEED - SHUTDOWN", COLOR_RED);
+            trigger_alert("N1 LEFT OVERSPEED - SHUTDOWN", COLOR_RED);
             if (state != EngineState::STOPPING && state != EngineState::OFF) engine.stop();
         }
         else if (n1L_pct > 105.0) {
             indicators.at("OverSpd1").setActive(COLOR_AMBER);
-            set_alert("N1 LEFT OVERSPEED CAUTION", COLOR_AMBER);
+            trigger_alert("N1 LEFT OVERSPEED CAUTION", COLOR_AMBER);
         }
     }
     if (!std::isnan(n1R_pct)) {
         if (n1R_pct > 120.0) {
             indicators.at("OverSpd2").setActive(COLOR_RED);
-            set_alert("N1 RIGHT OVERSPEED - SHUTDOWN", COLOR_RED);
+            trigger_alert("N1 RIGHT OVERSPEED - SHUTDOWN", COLOR_RED);
             if (state != EngineState::STOPPING && state != EngineState::OFF) engine.stop();
         }
         else if (n1R_pct > 105.0) {
             indicators.at("OverSpd2").setActive(COLOR_AMBER);
-            set_alert("N1 RIGHT OVERSPEED CAUTION", COLOR_AMBER);
+            trigger_alert("N1 RIGHT OVERSPEED CAUTION", COLOR_AMBER);
         }
     }
 
@@ -163,27 +180,25 @@ static void updateIndicators(Engine& engine, map<string, Indicator>& indicators)
     if (isStartingPhase) {
         if ((!std::isnan(egtL) && egtL > 1000.0) || (!std::isnan(egtR) && egtR > 1000.0)) {
             indicators.at("OverTemp2").setActive(COLOR_RED);
-            set_alert("EGT STARTING OVERTEMP - SHUTDOWN", COLOR_RED);
+            trigger_alert("EGT STARTING OVERTEMP - SHUTDOWN", COLOR_RED);
             if (state != EngineState::STOPPING && state != EngineState::OFF) engine.stop();
         }
         else if ((!std::isnan(egtL) && egtL > 850.0) || (!std::isnan(egtR) && egtR > 850.0)) {
             indicators.at("OverTemp1").setActive(COLOR_AMBER);
-            set_alert("EGT STARTING OVERTEMP CAUTION", COLOR_AMBER);
+            trigger_alert("EGT STARTING OVERTEMP CAUTION", COLOR_AMBER);
         }
     }
     else if (state == EngineState::STABLE) {
         if ((!std::isnan(egtL) && egtL > 1100.0) || (!std::isnan(egtR) && egtR > 1100.0)) {
             indicators.at("OverTemp4").setActive(COLOR_RED);
-            set_alert("EGT STABLE OVERTEMP - SHUTDOWN", COLOR_RED);
+            trigger_alert("EGT STABLE OVERTEMP - SHUTDOWN", COLOR_RED);
             if (state != EngineState::STOPPING && state != EngineState::OFF) engine.stop();
         }
         else if ((!std::isnan(egtL) && egtL > 950.0) || (!std::isnan(egtR) && egtR > 950.0)) {
             indicators.at("OverTemp3").setActive(COLOR_AMBER);
-            set_alert("EGT STABLE OVERTEMP CAUTION", COLOR_AMBER);
+            trigger_alert("EGT STABLE OVERTEMP CAUTION", COLOR_AMBER);
         }
     }
-
-    alertInfo.triggerAlert(highest_alert_msg, highest_alert_color);
 
     bool stable = (engine.getState() == EngineState::STABLE);
     if (thrust_buttons.count("ThrustUp")) thrust_buttons.at("ThrustUp").setEnabled(stable);
@@ -264,10 +279,9 @@ int main() {
     EndBatchDraw();
     closegraph(); // 关闭窗口
 
+    cmdThreadRunning = false;
     if (cmdThread.joinable()) {
-        cmdThreadRunning = false;
-        // 为了确保线程能退出，需要发送一个空命令或等待
-        cmdThread.join();
+        cmdThread.detach();  // ← 让线程自行终止，不等待
     }
 
     if (logging) {
