@@ -116,4 +116,5 @@ private:
 	// 2Ì¨ÒýÇæ
     SingleEngine leftEngine;
     SingleEngine rightEngine;
+    double fuelReserveBeforeInvalid;
 };

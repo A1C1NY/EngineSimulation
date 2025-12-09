@@ -99,12 +99,9 @@ void Engine::advance(double dt) {
 
 	simElapsed += dt;
 
-	// 传感器无效检查
+	// 传感器无效检查 - 移除了自动停机逻辑
 	if (fuelReserve < 0.0 || fuelReserve > FUEL_CAPACITY) {
 		fuelReserveSensorInvalid = true;
-	}
-	if (fuelReserveSensorInvalid && state != EngineState::STOPPING) {
-		stop();
 	}
 
 	// 更新引擎状态
@@ -136,17 +133,17 @@ void Engine::advance(double dt) {
 		break;
 	}
 	case EngineState::STABLE: {
-		leftEngine.n1True = leftEngine.n1Base * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
-		leftEngine.egtTrue = leftEngine.egtBase * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
-		rightEngine.n1True = rightEngine.n1Base * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
-		rightEngine.egtTrue = rightEngine.egtBase * (1.0 + ((rand() % 601) / 10000.0) - 0.03);
+		leftEngine.n1True = leftEngine.n1Base * (1.0 + ((rand() % 101) / 10000.0) - 0.005);
+		leftEngine.egtTrue = leftEngine.egtBase * (1.0 + ((rand() % 101) / 10000.0) - 0.005);
+		rightEngine.n1True = rightEngine.n1Base * (1.0 + ((rand() % 101) / 10000.0) - 0.005);
+		rightEngine.egtTrue = rightEngine.egtBase * (1.0 + ((rand() % 101) / 10000.0) - 0.005);
 		if (!fuelFlowOverridden) {
-			fuelFlow = min(fuelFlowBase * (1.0 + ((rand() % 601) / 10000.0) - 0.03), FUEL_FLOW_MAX);
+			fuelFlow = min(fuelFlowBase * (1.0 + ((rand() % 101) / 10000.0) - 0.005), FUEL_FLOW_MAX);
 		}
 		break;
 	}
 	case EngineState::STOPPING: {
-		stopPhaseElapsed += dt; 
+		stopPhaseElapsed += dt;
 		double t = stopPhaseElapsed;
 
 		double factor = (t < 8.0) ? (1.0 - log10(t + 1.0) / log10(9.0)) : 0.0;
@@ -172,7 +169,7 @@ void Engine::advance(double dt) {
 	updateSensor(leftEngine);
 	updateSensor(rightEngine);
 
-	// 燃油消耗
+	// 燃油消耗 - 只有在传感器有效时才消耗燃油
 	if (!fuelReserveSensorInvalid) {
 		fuelReserve -= fuelFlow * dt;
 		if (fuelReserve <= 0) {
@@ -347,7 +344,18 @@ void Engine::resetEGTSensorOverride(int engine_id, int sensor_id) {
 
 void Engine::setForcedFuelReserve(double value) {fuelReserve = value;}
 void Engine::resetFuelReserveOverride() { fuelReserve = FUEL_CAPACITY; }
-void Engine::setFuelReserveSensorInvalid(bool invalid) { fuelReserveSensorInvalid = invalid; }
+void Engine::setFuelReserveSensorInvalid(bool invalid) {
+	if (invalid && !fuelReserveSensorInvalid) {
+		// 在设置为无效之前，备份当前燃油余量
+		fuelReserveBeforeInvalid = fuelReserve;
+	}
+	fuelReserveSensorInvalid = invalid;
+
+	if (!invalid) {
+		// 恢复到设置为无效之前的状态
+		fuelReserve = fuelReserveBeforeInvalid;
+	}
+}
 bool Engine::isFuelReserveSensorInvalid() const { return fuelReserveSensorInvalid; }
 void Engine::setFuelFlowSensorInvalid(bool invalid) { fuelFlowSensorInvalid = invalid; }
 bool Engine::isFuelFlowSensorInvalid() const { return fuelFlowSensorInvalid; }
