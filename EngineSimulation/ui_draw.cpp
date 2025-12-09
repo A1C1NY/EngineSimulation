@@ -34,9 +34,9 @@ void drawButtons(const Engine& engine, const map<string, TriangleButton>& thrust
     solidrectangle(start_rect.left, start_rect.top, start_rect.right, start_rect.bottom);
 
     settextcolor(COLOR_BLACK);
-    settextstyle(18, 0, L"Arial");
+    settextstyle(22, 0, L"Arial");
     setbkmode(TRANSPARENT);
-    outtextxy(start_rect.left + 30, start_rect.top + 10, L"START");
+    outtextxy(start_rect.left + 35, start_rect.top + 20, L"START");
 
     RECT stop_rect = { 820, 120, 950, 180 };
     COLORREF stop_color = (engine.getState() == EngineState::STABLE || engine.getState() == EngineState::STARTING) ? COLOR_RED : COLOR_GREY;
@@ -44,9 +44,9 @@ void drawButtons(const Engine& engine, const map<string, TriangleButton>& thrust
     solidrectangle(stop_rect.left, stop_rect.top, stop_rect.right, stop_rect.bottom);
 
     settextcolor(COLOR_WHITE);
-    settextstyle(18, 0, L"Arial");
+    settextstyle(22, 0, L"Arial");
     setbkmode(TRANSPARENT);
-    outtextxy(stop_rect.left + 35, stop_rect.top + 12, L"STOP");
+    outtextxy(stop_rect.left + 37, stop_rect.top + 20, L"STOP");
 
     // 绘制推力按钮
     if (thrust_buttons.count("ThrustUp") && thrust_buttons.count("ThrustDown")) {
@@ -59,9 +59,9 @@ void drawFuelInfo(const Engine& engine) {
     settextcolor(COLOR_WHITE);
     settextstyle(18, 0, L"Arial");
     setbkmode(TRANSPARENT);
-    outtextxy(600, 60, L"Fuel Flow:");
+    outtextxy(600, 50, L"Fuel Flow:");
 
-    RECT ff_rect = { 600, 80, 750, 110 };
+    RECT ff_rect = { 600, 70, 730, 100 };
     setlinecolor(COLOR_WHITE);
     rectangle(ff_rect.left, ff_rect.top, ff_rect.right, ff_rect.bottom);
 
@@ -76,7 +76,7 @@ void drawFuelInfo(const Engine& engine) {
 
     outtextxy(600, 120, L"Fuel Reserve:");
 
-    RECT fuel_bar_rect = { 600, 140, 750, 170 };
+    RECT fuel_bar_rect = { 600, 140, 730, 170 };
     setlinecolor(COLOR_WHITE);
     rectangle(fuel_bar_rect.left, fuel_bar_rect.top, fuel_bar_rect.right, fuel_bar_rect.bottom);
 
