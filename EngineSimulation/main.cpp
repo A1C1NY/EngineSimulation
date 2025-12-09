@@ -31,13 +31,36 @@ bool isLogging = false;
 
 static void updateIndicators(Engine& engine, map<string, Indicator>& indicators) {
 	// 更新各个指示灯时间状态
-	for (auto& pair : indicators) {
-		pair.second.update();
-	}
+    for (auto& pair : indicators) {
+        // 不让 Start 和 Run 指示灯自动熄灭
+        if (pair.first != "Start" && pair.first != "Run") {
+            pair.second.update();
+        }
+    }
 
 	// 获取发动机状态
 	EngineState state = engine.getState();
 	EngineSubState subState = engine.getSubState();
+
+    // 控制 Start 和 Run 指示灯
+    if (state == EngineState::STARTING) {
+        indicators.at("Start").setActive(COLOR_GREEN);
+        indicators.at("Run").deactivate();
+    }
+    else if (state == EngineState::STABLE) {
+        indicators.at("Start").deactivate();
+        // N1 低于稳定阈值的95%则熄灭
+        if (engine.getN1Left() < N1_STABLE_THRESHOLD * 0.95 || engine.getN1Right() < N1_STABLE_THRESHOLD * 0.95) {
+            indicators.at("Run").deactivate();
+        }
+        else {
+            indicators.at("Run").setActive(COLOR_GREEN);
+        }
+    }
+    else { // OFF 或 STOPPING 状态
+        indicators.at("Start").deactivate();
+        indicators.at("Run").deactivate();
+    }
 
     std::string highest_alert_msg;
     COLORREF highest_alert_color = COLOR_BLACK;

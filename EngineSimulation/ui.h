@@ -39,6 +39,7 @@ public:
     void draw() const;
     void update();
     void setActive(const COLORREF newColor = COLOR_AMBER);
+    void deactivate();
 
     std::string getText() const {return label;}
     RECT getPosition() const {return pos;}
@@ -85,7 +86,7 @@ private:
     Alert currentAlert;
     std::deque<Alert> alertHistory;
     double getCurrentTime() const;
-}; // ← 这里补上分号
+}; 
 
 
 void initializeIndicators(std::map<std::string, Indicator>& indicators);

@@ -28,25 +28,25 @@ void drawGauges(const vector<Gauge>& gauges, const Engine& engine) {
 }
 
 void drawButtons(const Engine& engine, const map<string, TriangleButton>& thrust_buttons) {
-    RECT start_rect = { 150, 380, 250, 410 };
-    COLORREF start_color = (engine.getState() == EngineState::OFF) ? COLOR_GREEN: COLOR_GREY;
+    RECT start_rect = { 810, 90, 900, 120 };
+    COLORREF start_color = (engine.getState() == EngineState::OFF) ? COLOR_GREEN : COLOR_GREY;
     setfillcolor(start_color);
     solidrectangle(start_rect.left, start_rect.top, start_rect.right, start_rect.bottom);
 
     settextcolor(COLOR_BLACK);
-    settextstyle(18, 0, L"Arial"); 
+    settextstyle(14, 0, L"Arial");
     setbkmode(TRANSPARENT);
-    outtextxy(start_rect.left + 20, start_rect.top + 5, L"START");
+    outtextxy(start_rect.left + 5, start_rect.top + 3, L"START");
 
-    RECT stop_rect = { 260, 380, 360, 410 };
+    RECT stop_rect = { 810, 130, 900, 160 };
     COLORREF stop_color = (engine.getState() == EngineState::STABLE || engine.getState() == EngineState::STARTING) ? COLOR_RED : COLOR_GREY;
     setfillcolor(stop_color);
     solidrectangle(stop_rect.left, stop_rect.top, stop_rect.right, stop_rect.bottom);
 
     settextcolor(COLOR_WHITE);
-    settextstyle(18, 0, L"Arial"); 
+    settextstyle(14, 0, L"Arial");
     setbkmode(TRANSPARENT);
-    outtextxy(stop_rect.left + 25, stop_rect.top + 5, L"STOP");
+    outtextxy(stop_rect.left + 7, stop_rect.top + 3, L"STOP");
 
     // 绘制推力按钮
     if (thrust_buttons.count("ThrustUp") && thrust_buttons.count("ThrustDown")) {
@@ -59,9 +59,9 @@ void drawFuelInfo(const Engine& engine) {
     settextcolor(COLOR_WHITE);
     settextstyle(18, 0, L"Arial");
     setbkmode(TRANSPARENT);
-    outtextxy(400, 280, L"Fuel Flow:");
+    outtextxy(600, 60, L"Fuel Flow:");
 
-    RECT ff_rect = { 400, 300, 550, 330 };
+    RECT ff_rect = { 600, 80, 750, 110 };
     setlinecolor(COLOR_WHITE);
     rectangle(ff_rect.left, ff_rect.top, ff_rect.right, ff_rect.bottom);
 
@@ -71,12 +71,12 @@ void drawFuelInfo(const Engine& engine) {
     wstring ff_wstr(ff_str.begin(), ff_str.end());
 
     settextcolor(COLOR_WHITE);
-    settextstyle(18, 0, L"Arial"); 
-    outtextxy(410, 305, ff_wstr.c_str());
+    settextstyle(18, 0, L"Arial");
+    outtextxy(ff_rect.left + 10, ff_rect.top + 5, ff_wstr.c_str());
 
-    outtextxy(400, 340, L"Fuel Reserve:");
+    outtextxy(600, 120, L"Fuel Reserve:");
 
-    RECT fuel_bar_rect = { 400, 360, 550, 390 };
+    RECT fuel_bar_rect = { 600, 140, 750, 170 };
     setlinecolor(COLOR_WHITE);
     rectangle(fuel_bar_rect.left, fuel_bar_rect.top, fuel_bar_rect.right, fuel_bar_rect.bottom);
 
@@ -96,7 +96,8 @@ void drawFuelInfo(const Engine& engine) {
 
         // 绘制填充条
         setfillcolor(fuel_color);
-        solidrectangle(400, 360, 400 + static_cast<int>(150 * fuel_percentage), 390);
+        int bar_width = fuel_bar_rect.right - fuel_bar_rect.left;
+        solidrectangle(fuel_bar_rect.left, fuel_bar_rect.top, fuel_bar_rect.left + static_cast<int>(bar_width * fuel_percentage), fuel_bar_rect.bottom);
 
         // 绘制数值
         stringstream fr_ss;
@@ -104,15 +105,15 @@ void drawFuelInfo(const Engine& engine) {
         string fr_str = fr_ss.str();
         wstring fr_wstr(fr_str.begin(), fr_str.end());
 
-        settextcolor(COLOR_GREY); 
-        settextstyle(18, 0, L"Arial"); 
-        outtextxy(410, 365, fr_wstr.c_str());
+        settextcolor(COLOR_GREY);
+        settextstyle(18, 0, L"Arial");
+        outtextxy(fuel_bar_rect.left + 10, fuel_bar_rect.top + 5, fr_wstr.c_str());
     }
     else {
         // 无效值 (--) 红色
         settextcolor(COLOR_RED);
-        settextstyle(18, 0, L"Arial"); 
-        outtextxy(410, 365, L"--");
+        settextstyle(18, 0, L"Arial");
+        outtextxy(fuel_bar_rect.left + 10, fuel_bar_rect.top + 5, L"--");
     }
 }
 
@@ -131,12 +132,24 @@ void drawStatusMessage(const Engine& engine) {
     case EngineState::STOPPING: status_message = "SHUTDOWN"; break;
     }
 
+    // 定义与指示灯对齐的方框
+    RECT status_box = { 300, 425, 565, 485 };
+    setlinecolor(COLOR_WHITE);
+    rectangle(status_box.left, status_box.top, status_box.right, status_box.bottom);
+
     settextcolor(COLOR_WHITE);
-    settextstyle(18, 0, L"Arial");
+    settextstyle(30, 0, L"Consolas");
     setbkmode(TRANSPARENT);
     string full_message = "STATUS: " + status_message;
     wstring full_message_wstr(full_message.begin(), full_message.end());
-    outtextxy(20, 30, full_message_wstr.c_str());
+
+    // 计算文本居中位置
+    int text_width = textwidth(full_message_wstr.c_str());
+    int text_height = textheight(full_message_wstr.c_str());
+    int x_pos = status_box.left + (status_box.right - status_box.left - text_width) / 2;
+    int y_pos = status_box.top + (status_box.bottom - status_box.top - text_height) / 2;
+
+    outtextxy(x_pos, y_pos, full_message_wstr.c_str());
 }
 
 void drawUI(const vector<Gauge>& gauges, const map<string, Indicator>& indicators, const map<string, TriangleButton>& thrust_buttons, const Engine& engine, const AlertInfo& alertInfo) {

@@ -157,6 +157,11 @@ void Indicator::setActive(const COLORREF newColor) {
 	}
 }
 
+void Indicator::deactivate() {
+	isActive = false;
+	color = COLOR_GREY;
+}
+
 TriangleButton::TriangleButton(const RECT& rectangle, bool direction)
 	: rect(rectangle), direction(direction), enabled(true) {}
 
@@ -252,26 +257,27 @@ void AlertInfo::update() {
 }
 
 void AlertInfo::drawHistory() const {
-	int baseY = WINDOW_HEIGHT - 100;  // 改为显示在更上面的位置
+	int baseX = WINDOW_WIDTH - 400;
+	int baseY = 200;  // 改为显示在更上面的位置
 	int lineHeight = 20;
-	int maxLines = 4;
+	int maxLines = 20;
 	int cnt = 0;
 
 	// 绘制警报历史背景框（可选但建议）
 	setlinecolor(COLOR_GREY);
-	rectangle(30, baseY - 25, WINDOW_WIDTH - 30, baseY + maxLines * lineHeight);
+	rectangle(baseX, baseY, baseX + 350, WINDOW_HEIGHT - 50);
 
 	// 绘制标题
 	settextcolor(COLOR_WHITE);
 	setbkmode(TRANSPARENT);
 	settextstyle(16, 0, _T("Consolas"));
-	outtextxy(35, baseY - 22, L"Alert History:");
+	outtextxy(baseX + 5, baseY + 5, L"Alert:");
 
 	// 绘制警报信息
 	for (auto it = alertHistory.begin(); it != alertHistory.end() && cnt < maxLines; ++it, ++cnt) {
 		const Alert& alert = *it;
-		int x = 50;
-		int y = baseY + cnt * lineHeight;
+		int x = baseX + 20;
+		int y = baseY + cnt * lineHeight + 20;
 
 		settextcolor(alert.color);
 		setbkmode(TRANSPARENT);
@@ -285,46 +291,58 @@ void AlertInfo::drawHistory() const {
 void initializeIndicators(map<string, Indicator>& indicators) {
 	// map<string, Indicator>直接用string找到对应的Indicator
 	indicators.clear();
-	const int w = 199, h = 25, xStart = 20, yStart = 420, xOffset = 110, yOffset = 30;
+	const int w = 125, h = 25, xStart = 20, yStart = 500, xOffset = 140, yOffset = 30;
 
+	// 在右上角添加 Start 和 Run 指示灯
+	indicators.emplace("Start", Indicator({ xStart, yStart - 75, xStart + w,  yStart - 15 }, "START"));
+	indicators.emplace("Run", Indicator({ xStart + xOffset, yStart - 75, xStart + xOffset + w, yStart - 15 }, "RUN"));
+
+	// --- 5x4 指示灯矩阵 ---
+
+	// 第 1 行: N1 传感器故障 (左/右, 传感器1/2)
 	indicators.emplace("N1_L_S1_Fail", Indicator({ xStart, yStart, xStart + w, yStart + h }, "N1 L S1 Fail"));
 	indicators.emplace("N1_L_S2_Fail", Indicator({ xStart + xOffset, yStart, xStart + xOffset + w, yStart + h }, "N1 L S2 Fail"));
-	indicators.emplace("EGT_L_S1_Fail", Indicator({ xStart + 2 * xOffset, yStart, xStart + 2 * xOffset + w, yStart + h }, "EGT L S1 Fail"));
-	indicators.emplace("EGT_L_S2_Fail", Indicator({ xStart + 3 * xOffset, yStart, xStart + 3 * xOffset + w, yStart + h }, "EGT L S2 Fail"));
-	indicators.emplace("FuelResFail", Indicator({ xStart + 4 * xOffset, yStart, xStart + 4 * xOffset + w, yStart + h }, "Fuel Res Fail"));
+	indicators.emplace("N1_R_S1_Fail", Indicator({ xStart + 2 * xOffset, yStart, xStart + 2 * xOffset + w, yStart + h }, "N1 R S1 Fail"));
+	indicators.emplace("N1_R_S2_Fail", Indicator({ xStart + 3 * xOffset, yStart, xStart + 3 * xOffset + w, yStart + h }, "N1 R S2 Fail"));
 
-	indicators.emplace("N1_R_S1_Fail", Indicator({ xStart, yStart + yOffset, xStart + w, yStart + yOffset + h }, "N1 R S1 Fail"));
-	indicators.emplace("N1_R_S2_Fail", Indicator({ xStart + xOffset, yStart + yOffset, xStart + xOffset + w, yStart + yOffset + h }, "N1 R S2 Fail"));
+	// 第 2 行: EGT 传感器故障 (左/右, 传感器1/2)
+	indicators.emplace("EGT_L_S1_Fail", Indicator({ xStart, yStart + yOffset, xStart + w, yStart + yOffset + h }, "EGT L S1 Fail"));
+	indicators.emplace("EGT_L_S2_Fail", Indicator({ xStart + xOffset, yStart + yOffset, xStart + xOffset + w, yStart + yOffset + h }, "EGT L S2 Fail"));
 	indicators.emplace("EGT_R_S1_Fail", Indicator({ xStart + 2 * xOffset, yStart + yOffset, xStart + 2 * xOffset + w, yStart + yOffset + h }, "EGT R S1 Fail"));
 	indicators.emplace("EGT_R_S2_Fail", Indicator({ xStart + 3 * xOffset, yStart + yOffset, xStart + 3 * xOffset + w, yStart + yOffset + h }, "EGT R S2 Fail"));
-	indicators.emplace("FuelFlowFail", Indicator({ xStart + 4 * xOffset, yStart + yOffset, xStart + 4 * xOffset + w, yStart + yOffset + h }, "Fuel Flow Fail"));
 
-	indicators.emplace("LowFuel", Indicator({ xStart, yStart + 2 * yOffset, xStart + w, yStart + 2 * yOffset + h }, "Low Fuel"));
-	indicators.emplace("N1SFail", Indicator({ xStart + xOffset, yStart + 2 * yOffset, xStart + xOffset + w, yStart + 2 * yOffset + h }, "N1 Sys Fail"));
-	indicators.emplace("OverFF", Indicator({ xStart + 2 * xOffset, yStart + 2 * yOffset, xStart + 2 * xOffset + w, yStart + 2 * yOffset + h }, "Over FF"));
-	indicators.emplace("OverSpd1", Indicator({ xStart + 3 * xOffset, yStart + 2 * yOffset, xStart + 3 * xOffset + w, yStart + 2 * yOffset + h }, "OverSpd L"));
-	indicators.emplace("OverSpd2", Indicator({ xStart + 4 * xOffset, yStart + 2 * yOffset, xStart + 4 * xOffset + w, yStart + 2 * yOffset + h }, "OverSpd R"));
+	// 第 3 行: 系统级故障和超速
+	indicators.emplace("N1SFail", Indicator({ xStart, yStart + 2 * yOffset, xStart + w, yStart + 2 * yOffset + h }, "N1 Sys Fail"));
+	indicators.emplace("EGTSFail", Indicator({ xStart + xOffset, yStart + 2 * yOffset, xStart + xOffset + w, yStart + 2 * yOffset + h }, "EGT Sys Fail"));
+	indicators.emplace("OverSpd1", Indicator({ xStart + 2 * xOffset, yStart + 2 * yOffset, xStart + 2 * xOffset + w, yStart + 2 * yOffset + h }, "OverSpd L"));
+	indicators.emplace("OverSpd2", Indicator({ xStart + 3 * xOffset, yStart + 2 * yOffset, xStart + 3 * xOffset + w, yStart + 2 * yOffset + h }, "OverSpd R"));
 
-	indicators.emplace("EGTSFail", Indicator({ xStart, yStart + 3 * yOffset, xStart + w, yStart + 3 * yOffset + h }, "EGT Sys Fail"));
-	indicators.emplace("OverTemp1", Indicator({ xStart + xOffset, yStart + 3 * yOffset, xStart + xOffset + w, yStart + 3 * yOffset + h }, "OverTemp S1"));
-	indicators.emplace("OverTemp2", Indicator({ xStart + 2 * xOffset, yStart + 3 * yOffset, xStart + 2 * xOffset + w, yStart + 3 * yOffset + h }, "OverTemp S2"));
-	indicators.emplace("OverTemp3", Indicator({ xStart + 3 * xOffset, yStart + 3 * yOffset, xStart + 3 * xOffset + w, yStart + 3 * yOffset + h }, "OverTemp C1"));
-	indicators.emplace("OverTemp4", Indicator({ xStart + 4 * xOffset, yStart + 3 * yOffset, xStart + 4 * xOffset + w, yStart + 3 * yOffset + h }, "OverTemp C2"));
+	// 第 4 行: 燃油系统状态
+	indicators.emplace("LowFuel", Indicator({ xStart, yStart + 3 * yOffset, xStart + w, yStart + 3 * yOffset + h }, "Low Fuel"));
+	indicators.emplace("OverFF", Indicator({ xStart + xOffset, yStart + 3 * yOffset, xStart + xOffset + w, yStart + 3 * yOffset + h }, "Over FF"));
+	indicators.emplace("FuelResFail", Indicator({ xStart + 2 * xOffset, yStart + 3 * yOffset, xStart + 2 * xOffset + w, yStart + 3 * yOffset + h }, "Fuel Res Fail"));
+	indicators.emplace("FuelFlowFail", Indicator({ xStart + 3 * xOffset, yStart + 3 * yOffset, xStart + 3 * xOffset + w, yStart + 3 * yOffset + h }, "Fuel Flow Fail"));
+
+	// 第 5 行: EGT 超温警告
+	indicators.emplace("OverTemp1", Indicator({ xStart, yStart + 4 * yOffset, xStart + w, yStart + 4 * yOffset + h }, "OverTemp S1"));
+	indicators.emplace("OverTemp2", Indicator({ xStart + xOffset, yStart + 4 * yOffset, xStart + xOffset + w, yStart + 4 * yOffset + h }, "OverTemp S2"));
+	indicators.emplace("OverTemp3", Indicator({ xStart + 2 * xOffset, yStart + 4 * yOffset, xStart + 2 * xOffset + w, yStart + 4 * yOffset + h }, "OverTemp C1"));
+	indicators.emplace("OverTemp4", Indicator({ xStart + 3 * xOffset, yStart + 4 * yOffset, xStart + 3 * xOffset + w, yStart + 4 * yOffset + h }, "OverTemp C2"));
 }
 
 void initializeButtons(std::map<std::string, TriangleButton>& thrustButtons) {
 	thrustButtons.clear();
-	thrustButtons.emplace("ThrustUp", TriangleButton({ 400, 100, 400 + 20, 100 + 14 }, true)); // Up
-	thrustButtons.emplace("ThrustDown", TriangleButton({ 400, 116, 400 + 20, 116 + 14 }, false)); // Down
+	thrustButtons.emplace("ThrustUp", TriangleButton({ 770, 90, 800, 120 }, true)); // Up
+	thrustButtons.emplace("ThrustDown", TriangleButton({ 770, 130, 800, 160 }, false)); // Down
 }
 
 void handleMouseClick(int x, int y, void* enginePtr, void* startFlagPtr, void* stopFlagPtr, void* thrustButtonsPtr) {
-	if (x >= 150 && x <= 250 && y >= 380 && y <= 410) {
+	if (x >= 810 && x <= 900 && y >= 90 && y <= 120) {
 		if (startFlagPtr) {
 			*(bool*)startFlagPtr = true;
 		}
 	}
-	else if (x >= 260 && x <= 360 && y >= 380 && y <= 410) {
+	else if (x >= 810 && x <= 900 && y >= 130 && y <= 160) {
 		if (stopFlagPtr) {
 			*(bool*)stopFlagPtr = true;
 		}
