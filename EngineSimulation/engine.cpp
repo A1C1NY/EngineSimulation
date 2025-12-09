@@ -223,7 +223,7 @@ void Engine::updateSensor(SingleEngine& engine) {
 				engine.n1Sensor[s] = std::numeric_limits<double>::quiet_NaN();
 			}
 			else {
-				double noise = engine.n1True * (((rand() % 11) / 10000.0) - 0.005);
+				double noise = engine.n1True * (((rand() % 201) / 10000.0) - 0.005);
 				engine.n1Sensor[s] = engine.n1True + noise;
 			}
 		}
@@ -237,7 +237,7 @@ void Engine::updateSensor(SingleEngine& engine) {
 				engine.egtSensor[s] = std::numeric_limits<double>::quiet_NaN();
 			}
 			else {
-				double noise = engine.egtTrue * (((rand() % 11) / 10000.0) - 0.01);
+				double noise = engine.egtTrue * (((rand() % 201) / 10000.0) - 0.01);
 				engine.egtSensor[s] = engine.egtTrue + noise;
 			}
 		}
