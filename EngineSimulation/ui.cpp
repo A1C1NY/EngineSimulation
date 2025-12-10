@@ -33,13 +33,10 @@ void Gauge::draw(double value, double baseValue, double cautionStart, double war
 
 	if (isnan(value)) {
 		// 在数字读数位置绘制 "NaN"
-		setfillcolor(COLOR_BLACK);
-		solidrectangle(Gaugecenter.x + radius * 0.4, Gaugecenter.y - radius * 0.2,
-			Gaugecenter.x + radius * 1.0, Gaugecenter.y);
 		settextcolor(COLOR_RED);
 		setbkmode(TRANSPARENT);
 		settextstyle(20, 0, _T("Consolas"));
-		outtextxy(Gaugecenter.x + radius * 0.42, Gaugecenter.y - radius * 0.15, L"NaN");
+		outtextxy(Gaugecenter.x + radius * 0.42, Gaugecenter.y - radius * 0.3, L"NaN");
 	}
 	else {
 		// 2. 根据数值设定颜色
