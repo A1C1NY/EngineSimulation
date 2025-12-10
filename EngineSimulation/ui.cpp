@@ -51,7 +51,7 @@ void Gauge::draw(double value, double baseValue, double cautionStart, double war
 		// 3. 绘制代表当前值的实心扇形
 		double fillAngle = valueToAngle(value);
 
-		if (fillAngle != 0) {
+		if (abs(fillAngle) >= pi / 180) {
 			setlinecolor(currentColor);
 			setfillcolor(currentColor);
 
