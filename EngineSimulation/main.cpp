@@ -218,12 +218,10 @@ int main() {
     cmdThread = std::thread(commandLoop, std::ref(cmdThreadRunning), std::ref(engine));
 
     std::vector<Gauge> gauges;
-    // EasyX 的 POINT 是 {x, y}
-    // N1_MAX_RATED 和 EGT_MAX 假设在 engine.h 中定义
-    gauges.emplace_back(POINT{ 150, 120 }, 80, "N1_L", N1_MAX_RATED);
-    gauges.emplace_back(POINT{ 360, 120 }, 80, "N1_R", N1_MAX_RATED);
-    gauges.emplace_back(POINT{ 150, 300 }, 80, "EGT_L", EGT_MAX * 0.8);
-    gauges.emplace_back(POINT{ 360, 300 }, 80, "EGT_R", EGT_MAX * 0.8);
+    gauges.emplace_back(POINT{ 180, 120 }, 80, "N1_L", N1_MAX_RATED);
+    gauges.emplace_back(POINT{ 390, 120 }, 80, "N1_R", N1_MAX_RATED);
+    gauges.emplace_back(POINT{ 180, 300 }, 80, "EGT_L", EGT_MAX * 0.8);
+    gauges.emplace_back(POINT{ 390, 300 }, 80, "EGT_R", EGT_MAX * 0.8);
 
     // 替换 OpenCV 计时器
     double lastWall = getCurrenTimeSeconds();
