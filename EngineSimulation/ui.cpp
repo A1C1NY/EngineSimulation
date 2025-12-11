@@ -24,7 +24,7 @@ void Gauge::draw(double value, double baseValue, double cautionStart, double war
 	POINT Gaugecenter = center;
 	int GaugeRadius = radius;
 
-	// 1. 绘制仪表背景 (从 210° 到 0° 的空心扇形) 要转化弧度制
+	// 绘制仪表背景要转化弧度制
 	setlinecolor(COLOR_WHITE);
 	setfillcolor(COLOR_BLACK);
 	pie(Gaugecenter.x - GaugeRadius * 0.96, Gaugecenter.y - GaugeRadius * 1.05,
@@ -39,7 +39,7 @@ void Gauge::draw(double value, double baseValue, double cautionStart, double war
 		outtextxy(Gaugecenter.x + radius * 0.42, Gaugecenter.y - radius * 0.3, L"NaN");
 	}
 	else {
-		// 2. 根据数值设定颜色
+		// 根据数值设定颜色
 		COLORREF currentColor = COLOR_LIGHT_GREY; // 默认白色
 		if (value >= warningStart) {
 			currentColor = COLOR_RED;
@@ -48,7 +48,7 @@ void Gauge::draw(double value, double baseValue, double cautionStart, double war
 			currentColor = COLOR_AMBER;
 		}
 
-		// 3. 绘制代表当前值的实心扇形
+		// 绘制代表当前值的实心扇形
 		double fillAngle = valueToAngle(value);
 
 		if (abs(fillAngle) >= pi / 180) {
