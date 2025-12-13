@@ -65,15 +65,27 @@ void drawFuelInfo(const Engine& engine) {
     setlinecolor(COLOR_WHITE);
     rectangle(ff_rect.left, ff_rect.top, ff_rect.right, ff_rect.bottom);
 
-    stringstream ff_ss;
-    ff_ss << fixed << setprecision(1) << engine.getFuelFlow();
-    string ff_str = ff_ss.str();
-    wstring ff_wstr(ff_str.begin(), ff_str.end());
+    double fuelFlow = engine.getFuelFlow();
+    if (std::isnan(fuelFlow)) {
+        // 值无效时用红色显示 "--"
+        settextcolor(COLOR_RED);
+        settextstyle(18, 0, L"Arial");
+        setbkmode(TRANSPARENT);
+        outtextxy(ff_rect.left + 10, ff_rect.top + 5, L"--");
+    }
+    else {
+        stringstream ff_ss;
+        ff_ss << fixed << setprecision(1) << fuelFlow;
+        string ff_str = ff_ss.str();
+        wstring ff_wstr(ff_str.begin(), ff_str.end());
 
-    settextcolor(COLOR_WHITE);
-    settextstyle(18, 0, L"Arial");
-    outtextxy(ff_rect.left + 10, ff_rect.top + 5, ff_wstr.c_str());
+        settextcolor(COLOR_WHITE);
+        settextstyle(18, 0, L"Arial");
+        setbkmode(TRANSPARENT);
+        outtextxy(ff_rect.left + 10, ff_rect.top + 5, ff_wstr.c_str());
+    }
 
+	settextcolor(COLOR_WHITE);
     outtextxy(600, 120, L"Fuel Reserve:");
 
     RECT fuel_bar_rect = { 600, 140, 730, 170 };

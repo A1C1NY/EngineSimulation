@@ -2,9 +2,16 @@
 using namespace std;
 
 void commandLoop(bool& cmdThreadRunning, Engine& engine) {
+	cout << "[cmdThread]Usage: set <target> <type> [level]\n";
+	cout << "       <target>: N1_L1/N1_L2/N1_R1/N1_R2/EGT_L1/EGT_L2/EGT_R1/EGT_R2/FUEL_RES/FUEL_FLOW\n";
+	cout << "       <type>: fail/overspeed/overtemp/low/invalid/value\n";
+	cout << "       Start the engine before entering command.\n";
+	cout << "       e.g., set N1_LX/N1_RX/EGT_LX/EGT_RX fail(X=1-2)\n";
+	cout << "       e.g., set N1_LX/N1_RX/EGT_LX/EGT_RX overspeed/overtemp amber/red(X=1-2)\n";
+	cout << "       e.g., set FUEL_RES low/invalid\n";
+	cout << "       e.g., set FUEL_FLOW invalid/value 1000\n";
 	string line;
 	while (cmdThreadRunning) {
-		cout << ">";
 		if (!getline(cin, line) || !cmdThreadRunning) {
 			break;
 		}
@@ -18,7 +25,7 @@ void commandLoop(bool& cmdThreadRunning, Engine& engine) {
 				// set后面没有参数
 				cout << "[cmdThread]Usage: set <target> <type> [level]\n";
 				cout << "       e.g., set N1_LX/N1_RX/EGT_LX/EGT_RX fail(X=1-2)\n";
-				cout << "       e.g., set N1_LX/N1_RX/EGT_LX/EGT_RX overspeed amber/red(X=1-2)\n";
+				cout << "       e.g., set N1_LX/N1_RX/EGT_LX/EGT_RX overspeed/overtemp amber/red(X=1-2)\n";
 				cout << "       e.g., set FUEL_RES low/invalid\n";
 				cout << "       e.g., set FUEL_FLOW invalid/value 1000\n";
 				continue;
