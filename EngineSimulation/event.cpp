@@ -4,12 +4,12 @@ using namespace std;
 void commandLoop(bool& cmdThreadRunning, Engine& engine) {
 	cout << "[cmdThread]Usage: set <target> <type> [level]\n";
 	cout << "       <target>: N1_L1/N1_L2/N1_R1/N1_R2/EGT_L1/EGT_L2/EGT_R1/EGT_R2/FUEL_RES/FUEL_FLOW\n";
-	cout << "       <type>: fail/overspeed/overtemp/low/invalid/value\n";
+	cout << "       <type>: fail/overspeed/overtemp/low/value\n";
 	cout << "       Start the engine before entering command.\n";
 	cout << "       e.g., set N1_LX/N1_RX/EGT_LX/EGT_RX fail(X=1-2)\n";
 	cout << "       e.g., set N1_LX/N1_RX/EGT_LX/EGT_RX overspeed/overtemp amber/red(X=1-2)\n";
-	cout << "       e.g., set FUEL_RES low/invalid\n";
-	cout << "       e.g., set FUEL_FLOW invalid/value 1000\n";
+	cout << "       e.g., set FUEL_RES low/fail\n";
+	cout << "       e.g., set FUEL_FLOW fail/value 1000\n";
 	string line;
 	while (cmdThreadRunning) {
 		if (!getline(cin, line) || !cmdThreadRunning) {
@@ -26,8 +26,8 @@ void commandLoop(bool& cmdThreadRunning, Engine& engine) {
 				cout << "[cmdThread]Usage: set <target> <type> [level]\n";
 				cout << "       e.g., set N1_LX/N1_RX/EGT_LX/EGT_RX fail(X=1-2)\n";
 				cout << "       e.g., set N1_LX/N1_RX/EGT_LX/EGT_RX overspeed/overtemp amber/red(X=1-2)\n";
-				cout << "       e.g., set FUEL_RES low/invalid\n";
-				cout << "       e.g., set FUEL_FLOW invalid/value 1000\n";
+				cout << "       e.g., set FUEL_RES low/fail\n";
+				cout << "       e.g., set FUEL_FLOW fail/value 1000\n";
 				continue;
 				// ÖØÐÂÊäÈë
 			}
@@ -37,12 +37,12 @@ void commandLoop(bool& cmdThreadRunning, Engine& engine) {
 					engine.setForcedFuelReserve(1000.0);
 					cout << "[cmdThread]Set " << target << " to state 'low'\n";
 				}
-				else if (type == "invalid") {
+				else if (type == "fail") {
 					engine.setFuelReserveSensorInvalid(true);
 					cout << "[cmdThread]Set " << target << " to state 'invalid'\n";
 				}
 				else {
-					cout << "[cmdThread]Invalid type for FUEL_RES. Use 'low' or 'invalid'.\n";
+					cout << "[cmdThread]Invalid type for FUEL_RES. Use 'low' or 'fail'.\n";
 				}
 				continue;
 			}
@@ -57,12 +57,12 @@ void commandLoop(bool& cmdThreadRunning, Engine& engine) {
 						cout << "[cmdThread]Invalid value for FUEL_FLOW.\n";
 					}
 				}
-				else if (type == "invalid") {
+				else if (type == "fail") {
 					engine.setFuelFlowSensorInvalid(true);
 					cout << "[cmdThread]Set " << target << " to state 'invalid'\n";
 				}
 				else {
-					cout << "[cmdThread]Invalid type for FUEL_FLOW. Use 'value <number>' or 'invalid'.\n";
+					cout << "[cmdThread]Invalid type for FUEL_FLOW. Use 'value <number>' or 'fail'.\n";
 				}
 				continue;
 			}
