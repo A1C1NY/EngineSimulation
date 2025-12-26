@@ -21,7 +21,7 @@ void drawGauges(const vector<Gauge>& gauges, const Engine& engine) {
         gauges[0].draw(engine.getN1Left(), n1_base, n1_caution, n1_warning);
         gauges[1].draw(engine.getN1Right(), n1_base, n1_caution, n1_warning);
 
-        // EGT（使用环境温度为基线）
+        // EGT使用环境温度为基线
         gauges[2].draw(engine.getEgtLeft(), egt_base, egt_caution, egt_warning);
         gauges[3].draw(engine.getEgtRight(), egt_base, egt_caution, egt_warning);
     }

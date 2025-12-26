@@ -237,7 +237,7 @@ void AlertInfo::update() {
 
 deque<Alert> AlertInfo::getAndClearNewAlerts() {
 	deque<Alert> alerts_to_log;
-	// 使用 move 高效地移动队列内容，然后清空原队列
+	// 使用move高效地移动队列内容，然后清空原队列
 	alerts_to_log = std::move(newAlertsForLogging);
 	newAlertsForLogging.clear();
 	return alerts_to_log;

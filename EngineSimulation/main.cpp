@@ -6,7 +6,7 @@
 #include <ctime>
 #include <iostream>
 #include <chrono>
-#include <graphics.h> // EasyX header
+#include <graphics.h> 
 #include "engine.h" 
 #include "ui.h"
 #include "ui_draw.h"
@@ -211,7 +211,7 @@ int main() {
     // EasyX 初始化
     initializeUI(WINDOW_NAME, &engine, &startButtonPressed, &stopButtonPressed, &thrust_buttons);
 
-    // 初始化 indicators 和 thrust_buttons（在 initializeUI 之后）
+    // 初始化 indicators 和 thrust_buttons
     initializeIndicators(indicators);
     initializeButtons(thrust_buttons);
 
