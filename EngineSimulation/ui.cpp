@@ -217,7 +217,6 @@ void AlertInfo::triggerAlert(const string& message, COLORREF color) {
 		alertHistory.push_back({ message, color, currentTime });
 	}
 
-	// 按照Red > Amber > White优先级更新当前警报
 	bool higherPriority = false;
 	if (currentAlert.message.empty()) {
 		higherPriority = true;
@@ -247,7 +246,7 @@ void AlertInfo::update() {
 		currentAlert = { "", COLOR_BLACK, 0.0 };
 	}
 
-	// 清理历史警报（修复：应该检查单个alert的时间戳）
+	// 清理历史警报，检查单个alert的时间戳
 	while (!alertHistory.empty() && (currentTime - alertHistory.front().timestamp >= 5.0)) {
 		alertHistory.pop_front();
 	}
@@ -260,7 +259,7 @@ void AlertInfo::drawHistory() const {
 	int maxLines = 20;
 	int cnt = 0;
 
-	// 绘制警报历史背景框（可选但建议）
+	// 绘制警报历史背景框
 	setlinecolor(COLOR_GREY);
 	rectangle(baseX, baseY, baseX + 350, WINDOW_HEIGHT - 50);
 

@@ -57,7 +57,7 @@ void logData(Engine& engine, ofstream& of, double startTime) {
 }
 
 void logAlert(Alert& alert, ofstream& os) {
-	if (!os.is_open()) return;
+	if (!os.is_open() || alert.message.empty()) return;
 
 	static unordered_map<string, double> lastMsg; // 每条消息上次记录时间
 

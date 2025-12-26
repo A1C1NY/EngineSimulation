@@ -45,7 +45,7 @@ public:
     void start();
     void stop();
 
-    // 固定步长推进（取代原来的依赖墙钟的 update）
+    // 固定步长推进
     void advance(double dt);
 
 	// 推力控制
@@ -69,7 +69,7 @@ public:
 
     double getSensorValue(int engine_idx, int sensor_type, int sensor_idx) const;
 
-    // 控制接口（保留）
+    // 控制接口
     void setForcedN1Sensor(int e, int s, double v);
     void resetN1SensorOverride(int e, int s);
     void setForcedEGTSensor(int e, int s, double v);

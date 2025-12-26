@@ -131,14 +131,14 @@ static void updateIndicators(Engine& engine, map<string, Indicator>& indicators)
     }
     else if (!std::isnan(fuelRes)) {
         if (fuelRes <= 0.0 && state != EngineState::OFF) {
-            indicators.at("LowFuel").setActive(COLOR_RED);
-            trigger_alert("FUEL DEPLETED - ENGINE SHUTDOWN", COLOR_RED);
-        }
+                indicators.at("LowFuel").setActive(COLOR_RED);
+                trigger_alert("FUEL DEPLETED - ENGINE SHUTDOWN", COLOR_RED);
+            }
         else if (fuelRes < 1000.0 && state != EngineState::OFF) {
-            indicators.at("LowFuel").setActive(COLOR_AMBER);
-            trigger_alert("LOW FUEL RESERVE", COLOR_AMBER);
+                indicators.at("LowFuel").setActive(COLOR_AMBER);
+                trigger_alert("LOW FUEL RESERVE", COLOR_AMBER);
+            }
         }
-    }
     if (engine.isFuelFlowSensorInvalid()) {
         indicators.at("FuelFlowFail").setActive(COLOR_AMBER);
         trigger_alert("FUEL FLOW SENSOR INVALID", COLOR_AMBER);
@@ -223,7 +223,6 @@ int main() {
     gauges.emplace_back(POINT{ 180, 300 }, 80, "EGT_L", EGT_MAX * 0.8);
     gauges.emplace_back(POINT{ 390, 300 }, 80, "EGT_R", EGT_MAX * 0.8);
 
-    // 替换 OpenCV 计时器
     double lastWall = getCurrenTimeSeconds();
     double accum = 0.0;
     const double STEP = 0.005;
@@ -279,7 +278,7 @@ int main() {
 
     cmdThreadRunning = false;
     if (cmdThread.joinable()) {
-        cmdThread.detach();  // ← 让线程自行终止，不等待
+        cmdThread.detach();  // 让线程自行终止，不等待
     }
 
     if (logging) {

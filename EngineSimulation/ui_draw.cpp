@@ -74,12 +74,13 @@ void drawFuelInfo(const Engine& engine) {
         outtextxy(ff_rect.left + 10, ff_rect.top + 5, L"--");
     }
     else {
+        settextcolor(COLOR_WHITE);
         stringstream ff_ss;
         ff_ss << fixed << setprecision(1) << fuelFlow;
         string ff_str = ff_ss.str();
         wstring ff_wstr(ff_str.begin(), ff_str.end());
 
-        settextcolor(COLOR_WHITE);
+		if (fuelFlow > 50) settextcolor(COLOR_AMBER);
         settextstyle(18, 0, L"Arial");
         setbkmode(TRANSPARENT);
         outtextxy(ff_rect.left + 10, ff_rect.top + 5, ff_wstr.c_str());
@@ -96,14 +97,17 @@ void drawFuelInfo(const Engine& engine) {
 
     if (!isnan(fuel_reserve)) {
         double fuel_percentage = fuel_reserve / FUEL_CAPACITY;
+        settextcolor(COLOR_GREY);
         if (fuel_percentage < 0.0) fuel_percentage = 0.0;
         if (fuel_percentage > 1.0) fuel_percentage = 1.0;
         COLORREF fuel_color = COLOR_WHITE; // 正常值白色
         if (fuel_reserve < 1000.0 && fuel_reserve > 0.0) {
             fuel_color = COLOR_AMBER; // 警戒值琥珀色
+			settextcolor(COLOR_AMBER);
         }
         else if (fuel_reserve <= 0.0) {
             fuel_color = COLOR_RED; // 警告值红色
+			settextcolor(COLOR_RED);
         }
 
         // 绘制填充条
@@ -117,7 +121,6 @@ void drawFuelInfo(const Engine& engine) {
         string fr_str = fr_ss.str();
         wstring fr_wstr(fr_str.begin(), fr_str.end());
 
-        settextcolor(COLOR_GREY);
         settextstyle(18, 0, L"Arial");
         outtextxy(fuel_bar_rect.left + 10, fuel_bar_rect.top + 5, fr_wstr.c_str());
     }

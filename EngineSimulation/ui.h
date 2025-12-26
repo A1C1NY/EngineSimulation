@@ -14,8 +14,8 @@ const int WINDOW_HEIGHT = 700;
 const COLORREF COLOR_WHITE = RGB(255, 255, 255);
 const COLORREF COLOR_BLACK = RGB(0, 0, 0);
 const COLORREF COLOR_RED = RGB(255, 0, 0);
-const COLORREF COLOR_AMBER = RGB(255, 165, 0); // 琥珀色 (Caution/Alert)
-const COLORREF COLOR_YELLOW = RGB(255, 255, 0); // 黄色，但语义上是警戒值
+const COLORREF COLOR_AMBER = RGB(255, 165, 0); // 琥珀色
+const COLORREF COLOR_YELLOW = RGB(255, 255, 0);
 const COLORREF COLOR_GREEN = RGB(0, 255, 0);
 const COLORREF COLOR_BLUE = RGB(0, 0, 255);
 const COLORREF COLOR_LIGHT_GREY = RGB(180, 180, 180);
@@ -61,7 +61,7 @@ public:
 
 private:
     RECT rect;
-    bool direction; // true for up, false for down
+    bool direction; // true代表上, false代表下
     bool enabled;
 };
 
