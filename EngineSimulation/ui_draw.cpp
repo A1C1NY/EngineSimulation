@@ -9,8 +9,8 @@ void drawGauges(const vector<Gauge>& gauges, const Engine& engine) {
     // gauges 顺序为 N1_L, N1_R, EGT_L, EGT_R
     if (gauges.size() >= 4) {
         // 阈值（原始值而非百分比）
-        double n1_caution = 42000.0;  // ≈105%
-        double n1_warning = 48000.0;  // ≈120%
+        double n1_caution = 42000.0;  
+        double n1_warning = 48000.0;  
         double egt_caution = 950.0;
         double egt_warning = 1100.0;
 
@@ -168,10 +168,10 @@ void drawStatusMessage(const Engine& engine) {
 }
 
 void drawUI(const vector<Gauge>& gauges, const map<string, Indicator>& indicators, const map<string, TriangleButton>& thrust_buttons, const Engine& engine, const AlertInfo& alertInfo) {
-    // 1. 清屏
+    // 清屏
     cleardevice();
 
-    // 2. 绘制所有元素
+    // 绘制所有元素
     drawGauges(gauges, engine);
     drawButtons(engine, thrust_buttons);
     drawFuelInfo(engine);
@@ -179,6 +179,6 @@ void drawUI(const vector<Gauge>& gauges, const map<string, Indicator>& indicator
     drawStatusMessage(engine);
     alertInfo.drawHistory();
 
-    // 3. 刷新屏幕
+    // 刷新屏幕
     FlushBatchDraw();
 }
