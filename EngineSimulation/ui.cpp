@@ -27,16 +27,16 @@ void Gauge::draw(double value, double baseValue, double cautionStart, double war
 	// 绘制仪表背景要转化弧度制
 	setlinecolor(COLOR_WHITE);
 	setfillcolor(COLOR_BLACK);
-	pie(Gaugecenter.x - GaugeRadius * 0.96, Gaugecenter.y - GaugeRadius * 1.05,
-		Gaugecenter.x + GaugeRadius * 1.04, Gaugecenter.y + GaugeRadius, // 稍微偏一些看起来效果更好
-		double(140) / 180 * pi , 0);
+	pie(Gaugecenter.x - static_cast<int>(GaugeRadius * 0.96), Gaugecenter.y - static_cast<int>(GaugeRadius * 1.05),
+		Gaugecenter.x + static_cast<int>(GaugeRadius * 1.04), Gaugecenter.y + GaugeRadius, // 稍微偏一些看起来效果更好
+		double(140) / 180 * pi, 0);
 
 	if (isnan(value)) {
 		// 在数字读数位置绘制 "NaN"
 		settextcolor(COLOR_RED);
 		setbkmode(TRANSPARENT);
 		settextstyle(20, 0, _T("Consolas"));
-		outtextxy(Gaugecenter.x + radius * 0.42, Gaugecenter.y - radius * 0.3, L"NaN");
+		outtextxy(Gaugecenter.x + static_cast<int>(radius * 0.42), Gaugecenter.y - static_cast<int>(radius * 0.3), L"NaN");
 	}
 	else {
 		// 根据数值设定颜色
@@ -55,8 +55,8 @@ void Gauge::draw(double value, double baseValue, double cautionStart, double war
 			setlinecolor(currentColor);
 			setfillcolor(currentColor);
 
-			solidpie(Gaugecenter.x - GaugeRadius * 0.9, Gaugecenter.y - GaugeRadius * 0.9,
-				Gaugecenter.x + GaugeRadius * 0.95, Gaugecenter.y + GaugeRadius * 0.9,
+			solidpie(Gaugecenter.x - static_cast<int>(GaugeRadius * 0.9), Gaugecenter.y - static_cast<int>(GaugeRadius * 0.9),
+				Gaugecenter.x + static_cast<int>(GaugeRadius * 0.95), Gaugecenter.y + static_cast<int>(GaugeRadius * 0.9),
 				fillAngle, 0);
 		}
 
@@ -71,19 +71,19 @@ void Gauge::draw(double value, double baseValue, double cautionStart, double war
 			wostringstream wss;
 			wss << fixed << setprecision(1) << displayValue;
 			wstring valStr = wss.str();
-			outtextxy(Gaugecenter.x + radius * 0.42, Gaugecenter.y - radius * 0.3, valStr.c_str());
+			outtextxy(Gaugecenter.x + static_cast<int>(radius * 0.42), Gaugecenter.y - static_cast<int>(radius * 0.3), valStr.c_str());
 		}
 		else {
 			wostringstream wss;
 			wss << fixed << setprecision(0) << displayValue;
 			wstring valStr = wss.str();
-			outtextxy(Gaugecenter.x + radius * 0.42, Gaugecenter.y - radius * 0.3, valStr.c_str());
+			outtextxy(Gaugecenter.x + static_cast<int>(radius * 0.42), Gaugecenter.y - static_cast<int>(radius * 0.3), valStr.c_str());
 		}
 	}
 	// 5. 绘制仪表标签
 	settextcolor(COLOR_WHITE);
 	settextstyle(20, 0, _T("Consolas"));
-	outtextxy(Gaugecenter.x - radius * 0.2, Gaugecenter.y - radius * 0.7, wstring(label.begin(), label.end()).c_str());
+	outtextxy(Gaugecenter.x - static_cast<int>(radius * 0.2), Gaugecenter.y - static_cast<int>(radius * 0.7), wstring(label.begin(), label.end()).c_str());
 }
 
 
@@ -214,8 +214,6 @@ void AlertInfo::triggerAlert(const std::string& message, COLORREF color) {
 		// 将新警报添加到待记录队列中
 		newAlertsForLogging.push_back(newAlert);
 	}
-	// 如果需要，即使警报已存在，也可以更新其时间戳并重新加入日志队列
-	// else { it->timestamp = now; newAlertsForLogging.push_back(*it); }
 }
 
 void AlertInfo::update() {
@@ -278,7 +276,6 @@ void AlertInfo::drawHistory() const {
 }
 
 void initializeIndicators(map<string, Indicator>& indicators) {
-	// map<string, Indicator>直接用string找到对应的Indicator
 	indicators.clear();
 	const int w = 125, h = 25, xStart = 20, yStart = 500, xOffset = 140, yOffset = 30;
 

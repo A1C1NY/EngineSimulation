@@ -281,7 +281,7 @@ int main() {
         cmdThread.detach();  // 让线程自行终止，不等待
     }
 
-    if (logging) {
+    if (isLogging) {
         if (data_log_file.is_open()) data_log_file.close();
         if (alert_log_file.is_open()) alert_log_file.close();
     }
