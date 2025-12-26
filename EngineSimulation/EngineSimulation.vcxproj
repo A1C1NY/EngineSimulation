@@ -26,8 +26,8 @@
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
-    <VcpkgEnabled>true</VcpkgEnabled>
-    <VcpkgEnableManifest>true</VcpkgEnableManifest>
+    <VcpkgEnabled>false</VcpkgEnabled>
+    <VcpkgEnableManifest>false</VcpkgEnableManifest>
     <VcpkgManifestRoot>$(MSBuildProjectDirectory)</VcpkgManifestRoot>
     <VcpkgTriplet>x64-windows-static</VcpkgTriplet>
   </PropertyGroup>
