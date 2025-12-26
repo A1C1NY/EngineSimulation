@@ -56,10 +56,8 @@ void logData(Engine& engine, ofstream& of, double startTime) {
 	}
 }
 
-void logAlert(Alert& alert, ofstream& os) {
+void logAlert(Alert& alert, ofstream& os, unordered_map<string, double>& lastMsg) {
 	if (!os.is_open() || alert.message.empty()) return;
-
-	static unordered_map<string, double> lastMsg; // 每条消息上次记录时间
 
 	double currentTime = getCurrenTimeSeconds();
 	auto it = lastMsg.find(alert.message);
@@ -75,14 +73,16 @@ void logAlert(Alert& alert, ofstream& os) {
 	tm buf;
 	localtime_s(&buf, &time);
 	os << put_time(&buf, "%Y-%m-%d %H:%M:%S") << " - ALERT: " << alert.message << "\n";
-	lastMsg[alert.message] = time;
-
+	lastMsg[alert.message] = currentTime; // 使用计时器
 }
 
 void logging(Engine& engine, ofstream& datafile, ofstream& alertfile, bool& logging, AlertInfo& alert_info) {
+	// 用于管理5秒内重复警报的状态
+	static unordered_map<string, double> lastMsg;
+
 	if (engine.getState() != EngineState::OFF && !logging) {
-		auto sysNow = chrono::system_clock::now(); // 获取系统当前时间
-		auto time = chrono::system_clock::to_time_t(sysNow); // 转换为time_t格式
+		auto sysNow = chrono::system_clock::now();
+		auto time = chrono::system_clock::to_time_t(sysNow);
 		tm buf;
 		localtime_s(&buf, &time);
 
@@ -98,6 +98,7 @@ void logging(Engine& engine, ofstream& datafile, ofstream& alertfile, bool& logg
 		alertfile.open("engine_alerts.log", ios::app);
 		logging = true;
 		cout << "[Logging] Started logging to " << oss.str() << " and engine_alerts.log\n";
+		lastMsg.clear(); // 开始新日志时，清空防重记录
 	}
 	else if (engine.getState() == EngineState::OFF && logging) {
 		datafile.close();
@@ -110,9 +111,11 @@ void logging(Engine& engine, ofstream& datafile, ofstream& alertfile, bool& logg
 
 	logData(engine, datafile, engine.getSimTime());
 
-	Alert& a = alert_info.getCurrentAlert(); // 获取当前警报
-	logAlert(a, alertfile);// 记录警报
-
+	// 获取所有新警报并逐一记录
+	auto newAlerts = alert_info.getAndClearNewAlerts();
+	for (auto& alert : newAlerts) {
+		logAlert(alert, alertfile, lastMsg);
+	}
 }
 
 

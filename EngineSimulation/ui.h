@@ -81,11 +81,13 @@ public:
 	const Alert& getCurrentAlert() const { return currentAlert; } // const°æ±¾
 	Alert& getCurrentAlert() { return currentAlert; } // ·Çconst°æ±¾
 	void drawHistory() const;
+    std::deque<Alert> getAndClearNewAlerts();
 
 private:
     Alert currentAlert;
     std::deque<Alert> alertHistory;
     double getCurrentTime() const;
+    std::deque<Alert> newAlertsForLogging;
 }; 
 
 

@@ -198,58 +198,51 @@ double AlertInfo::getCurrentTime() const {
 	return chrono::duration<double>(currentTime - startTime).count();
 }
 
-void AlertInfo::triggerAlert(const string& message, COLORREF color) {
-	if (message.empty()) return;  // 直接跳过空消息
+void AlertInfo::triggerAlert(const std::string& message, COLORREF color) {
+	double now = getCurrentTime();
 
-	double currentTime = getCurrentTime();
+	// 检查警报历史中是否已存在完全相同的警报，避免重复添加
+	auto it = std::find_if(alertHistory.begin(), alertHistory.end(),
+		[&](const Alert& a) { return a.message == message; });
 
-	// 检查是否已存在相同消息（5秒内）
-	bool found = false;
-	for (const auto& alert : alertHistory) {
-		if (alert.message == message && currentTime - alert.timestamp < 5.0) {
-			found = true;
-			break;
+	if (it == alertHistory.end()) {
+		Alert newAlert = { message, color, now };
+		alertHistory.push_front(newAlert);
+		if (alertHistory.size() > 10) {
+			alertHistory.pop_back();
 		}
+		// 将新警报添加到待记录队列中
+		newAlertsForLogging.push_back(newAlert);
 	}
-
-	// 只在未找到时添加
-	if (!found) {
-		alertHistory.push_back({ message, color, currentTime });
-	}
-
-	bool higherPriority = false;
-	if (currentAlert.message.empty()) {
-		higherPriority = true;
-	}
-	else if (color == COLOR_RED && currentAlert.color != COLOR_RED) {
-		higherPriority = true;
-	}
-	else if (color == COLOR_AMBER && currentAlert.color == COLOR_WHITE) {
-		higherPriority = true;
-	}
-
-	if (higherPriority || (color == currentAlert.color && message != currentAlert.message)) {
-		currentAlert.message = message;
-		currentAlert.color = color;
-		currentAlert.timestamp = currentTime;
-	}
-	else {
-		currentAlert.timestamp = currentTime;
-	}
+	// 如果需要，即使警报已存在，也可以更新其时间戳并重新加入日志队列
+	// else { it->timestamp = now; newAlertsForLogging.push_back(*it); }
 }
 
 void AlertInfo::update() {
-	double currentTime = getCurrentTime();
+	double now = getCurrentTime();
+	// 移除超过显示时间的旧警报
+	alertHistory.erase(
+		std::remove_if(alertHistory.begin(), alertHistory.end(),
+			[now](const Alert& a) { return now - a.timestamp > 5.0; }),
+		alertHistory.end()
+	);
 
-	// 如果当前警报存在且超过5秒未更新，则清除
-	if (!currentAlert.message.empty() && (currentTime - currentAlert.timestamp >= 5.0)) {
+	if (!alertHistory.empty()) {
+		// 总是显示最新的警报
+		currentAlert = alertHistory.front();
+	}
+	else {
+		// 如果没有警报，则清空当前警报
 		currentAlert = { "", COLOR_BLACK, 0.0 };
 	}
+}
 
-	// 清理历史警报，检查单个alert的时间戳
-	while (!alertHistory.empty() && (currentTime - alertHistory.front().timestamp >= 5.0)) {
-		alertHistory.pop_front();
-	}
+deque<Alert> AlertInfo::getAndClearNewAlerts() {
+	deque<Alert> alerts_to_log;
+	// 使用 move 高效地移动队列内容，然后清空原队列
+	alerts_to_log = std::move(newAlertsForLogging);
+	newAlertsForLogging.clear();
+	return alerts_to_log;
 }
 
 void AlertInfo::drawHistory() const {
