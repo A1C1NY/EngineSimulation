@@ -51,7 +51,7 @@ EngineSimulation/
 |   |── `ui.h`                  # UI 类型和警告信息声明
 |   |── `ui_draw.h`             # 绘制函数声明（EasyX 相关）
 |   |── `event.h`               # 事件处理函数声明
-|   └── `log.h`                  # 日志函数声明、时间工具
+|   └── `log.h`                 # 日志函数声明、时间工具
 |
 └── Sources
     |── `main.cpp`              # 程序入口、主循环、调度
