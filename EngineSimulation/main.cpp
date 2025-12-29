@@ -40,7 +40,6 @@ static void updateIndicators(Engine& engine, map<string, Indicator>& indicators)
 
     // 获取发动机状态
     EngineState state = engine.getState();
-    EngineSubState subState = engine.getSubState();
 
     // 控制 Start 和 Run 指示灯
     if (state == EngineState::STARTING) {
@@ -173,7 +172,7 @@ static void updateIndicators(Engine& engine, map<string, Indicator>& indicators)
         }
     }
 
-    bool isStartingPhase = (subState == EngineSubState::LINEAR_START || subState == EngineSubState::LOG_START);
+    bool isStartingPhase = (state == EngineState::STARTING);
     double egtL = engine.getEgtLeft();
     double egtR = engine.getEgtRight();
 

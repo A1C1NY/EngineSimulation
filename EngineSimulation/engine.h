@@ -65,7 +65,6 @@ public:
     double getFuelFlow() const;
     double getFuelReserve() const;
     EngineState getState() const;
-    EngineSubState getSubState() const;
 
     double getSensorValue(int engine_idx, int sensor_type, int sensor_idx) const;
 
@@ -98,7 +97,6 @@ private:
 
 	// 引擎状态初始化
     EngineState state = EngineState::OFF;
-    EngineSubState subState = EngineSubState::NONE;
 
 	// 时间跟踪
     double simElapsed = 0.0;

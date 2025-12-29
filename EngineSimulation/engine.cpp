@@ -11,7 +11,6 @@ Engine::Engine() {
 void Engine::resetParameters() {
 	// 重置引擎参数到初始状态
 	state = EngineState::OFF;
-	subState = EngineSubState::NONE;
 	simElapsed = 0.0;
 	fuelReserve = FUEL_CAPACITY;
 	startPhaseElapsed = 0.0;
@@ -30,7 +29,6 @@ void Engine::start() {
 	if (state == EngineState::OFF) {
 		resetParameters();
 		state = EngineState::STARTING;
-		subState = EngineSubState::LINEAR_START;
 		cout << "[Engine] Starting sequence initiated." << endl;
 	}
 	else {
@@ -84,7 +82,6 @@ void Engine::stop() {
 	releaseCoolingOverride(rightEngine);
 
 	state = EngineState::STOPPING;
-	subState = EngineSubState::SHUTDOWN;
 	stopPhaseElapsed = 0.0;
 	fuelFlow = 0.0;
 	fuelFlowOverridden = false;
@@ -110,7 +107,6 @@ void Engine::advance(double dt) {
 		startPhaseElapsed += dt;  // 累积时间
 		double t = startPhaseElapsed;
 
-		subState = (t <= 2.0) ? EngineSubState::LINEAR_START : EngineSubState::LOG_START;
 		double nVal = (t <= 2.0) ? (10000.0 * t) : (23000.0 * log10(t - 1.0) + 20000.0);
 		double vVal = (t <= 2.0) ? (5.0 * t) : (42.0 * log10(t - 1.0) + 10.0);
 		double tVal = (t <= 2.0) ? AMBIENT_TEMP : (900.0 * log10(t - 1.0) + AMBIENT_TEMP);
@@ -122,7 +118,6 @@ void Engine::advance(double dt) {
 		//  状态转换判断
 		if (leftEngine.n1True >= N1_STABLE_THRESHOLD && rightEngine.n1True >= N1_STABLE_THRESHOLD) {
 			state = EngineState::STABLE;
-			subState = EngineSubState::STABLE_RUN;
 			leftEngine.n1Base = leftEngine.n1True;
 			rightEngine.n1Base = rightEngine.n1True;
 			leftEngine.egtBase = leftEngine.egtTrue;
@@ -154,7 +149,6 @@ void Engine::advance(double dt) {
 
 		if (t >= 8.0 || (leftEngine.n1True <= 0.5 && rightEngine.n1True <= 0.5)) {
 			state = EngineState::OFF;
-			subState = EngineSubState::NONE;
 			leftEngine.n1True = rightEngine.n1True = 0.0;
 			leftEngine.egtTrue = rightEngine.egtTrue = AMBIENT_TEMP;
 			fuelFlow = 0.0;
@@ -297,7 +291,6 @@ double Engine::getFuelReserve() const {
 }
 
 EngineState Engine::getState() const {return state;}
-EngineSubState Engine::getSubState() const {return subState;}
 
 
 
