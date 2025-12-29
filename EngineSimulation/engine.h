@@ -17,7 +17,6 @@ const double FUEL_FLOW_MAX = 50.0; // 最大燃油流量
 const double N1_STABLE_THRESHOLD = 0.95 * N1_MAX_RATED; // 稳定运行阈值
 
 enum class EngineState { OFF, STARTING, STABLE, STOPPING }; 
-enum class EngineSubState { NONE, LINEAR_START, LOG_START, SHUTDOWN, STABLE_RUN};
 
 // 单个引擎的结构体
 struct SingleEngine {
