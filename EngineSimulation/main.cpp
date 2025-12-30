@@ -205,7 +205,7 @@ static void updateIndicators(Engine& engine, map<string, Indicator>& indicators)
 }
 
 int main() {
-    const std::string WINDOW_NAME = "Virtual Engine Monitor (EICAS)";
+    const string WINDOW_NAME = "Virtual Engine Monitor (EICAS)";
 
     // EasyX ≥ı ºªØ
     initializeUI(WINDOW_NAME, &engine, &startButtonPressed, &stopButtonPressed, &thrust_buttons);
@@ -214,9 +214,9 @@ int main() {
     initializeIndicators(indicators);
     initializeButtons(thrust_buttons);
 
-    cmdThread = std::thread(commandLoop, std::ref(cmdThreadRunning), std::ref(engine));
+    cmdThread = thread(commandLoop, ref(cmdThreadRunning), ref(engine));
 
-    std::vector<Gauge> gauges;
+    vector<Gauge> gauges;
     gauges.emplace_back(POINT{ 180, 120 }, 80, "N1_L", N1_MAX_RATED);
     gauges.emplace_back(POINT{ 390, 120 }, 80, "N1_R", N1_MAX_RATED);
     gauges.emplace_back(POINT{ 180, 300 }, 80, "EGT_L", EGT_MAX * 0.8);
