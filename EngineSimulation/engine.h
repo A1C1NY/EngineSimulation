@@ -20,8 +20,8 @@ enum class EngineState { OFF, STARTING, STABLE, STOPPING };
 
 // 单个引擎的结构体
 struct SingleEngine {
-	double n1True = 0.0;  // 真实的N1转速
-	double egtTrue = AMBIENT_TEMP;  // 真实的EGT温度
+	double n1True = 0.0;  // 基准值+噪声函数的N1转速
+	double egtTrue = AMBIENT_TEMP;  // 基准值+噪声函数的EGT温度
 	double n1Sensor[2] = { 0.0, 0.0 }; // N1传感器读数x2
 	double egtSensor[2] = { AMBIENT_TEMP, AMBIENT_TEMP }; // EGT传感器读数x2
 	bool n1SensorAnomal[2] = { false, false }; // N1传感器异常标志x2
@@ -32,8 +32,8 @@ struct SingleEngine {
 	bool egtSensorForcedAnomal[2] = { false, false }; // EGT传感器强制异常标志x2（输出保持）
 	double n1SensorOverrideVal[2] = { 0.0, 0.0 }; // N1传感器覆盖值x2
 	double egtSensorOverrideVal[2] = { 0.0, 0.0 }; // EGT传感器覆盖值x2
-    double n1Base = 0.0;
-    double egtBase = AMBIENT_TEMP;
+    double n1Base = 0.0; // 函数生成值
+	double egtBase = AMBIENT_TEMP; // 函数生成值
 };
 
 class Engine {
