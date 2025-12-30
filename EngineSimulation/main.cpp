@@ -2,7 +2,7 @@
 #include <map>
 #include <string>
 #include <fstream>
-#include <thread> // 用于输入指令的线程
+#include <thread> 
 #include <ctime>
 #include <iostream>
 #include <chrono>
