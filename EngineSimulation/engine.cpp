@@ -66,7 +66,7 @@ void Engine::stop() {
 		return;
 	}
 
-	// 需要从显示值开始冷却（符合常理）
+	// 需要从显示值开始冷却
 	double n1_left = getN1Left();
 	double n1_right = getN1Right();
 	double egt_left = getEgtLeft();
@@ -263,7 +263,6 @@ double Engine::getDisplayedValue(const SingleEngine& engine, bool isN1) const {
 	return (count > 0) ? (sum / count) : numeric_limits<double>::quiet_NaN();
 }
 
-// 仅供 UI / 日志读取
 double Engine::getSimTime() const { return simElapsed; }
 
 // 传感器与显示值
