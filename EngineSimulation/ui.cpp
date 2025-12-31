@@ -366,8 +366,7 @@ void fixConsoleWindow() {
 }
 
 void initializeUI(const string& windowName, void* enginePtr, void* startFlagPtr, void* stopFlagPtr, void* thrustButtonsPtr) {
-	// EasyX Initialization
-	initgraph(WINDOW_WIDTH, WINDOW_HEIGHT, EW_SHOWCONSOLE); // EW_SHOWCONSOLE keeps the console window open
+	initgraph(WINDOW_WIDTH, WINDOW_HEIGHT, EW_SHOWCONSOLE); 
 
 	HWND graphicsWindow = GetHWnd();
 	if (graphicsWindow != NULL) {

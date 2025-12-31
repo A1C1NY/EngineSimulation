@@ -33,7 +33,7 @@ void drawButtons(const Engine& engine, const map<string, TriangleButton>& thrust
     setfillcolor(start_color);
     solidrectangle(start_rect.left, start_rect.top, start_rect.right, start_rect.bottom);
 
-    settextcolor(COLOR_BLACK);
+    settextcolor(COLOR_WHITE);
     settextstyle(22, 0, L"Arial");
     setbkmode(TRANSPARENT);
     outtextxy(start_rect.left + 35, start_rect.top + 20, L"START");
